@@ -91,12 +91,12 @@ export const KioskModal = ({ isOpen, onClose }) => {
         subtitle="Self-service contactless entry registration & digital pass generator"
         maxWidth="max-w-xl"
       >
-        <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/80 rounded-xl flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
-            <Sparkles className="w-4 h-4" />
+        <div className="mb-4 p-3 bg-slate-900 border border-slate-800 rounded-xl flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-amber-500 text-black flex items-center justify-center shrink-0 font-bold">
+            <QrCode className="w-4 h-4" />
           </div>
-          <p className="text-xs text-blue-900 leading-snug">
-            Welcome to the facility. Enter your details below to generate your authorized digital gate pass with instant host arrival notification.
+          <p className="text-xs text-slate-300 leading-snug font-mono">
+            Direct contactless gate check-in. Fill details below to generate your cryptographic pass and notify your host.
           </p>
         </div>
 
@@ -227,3 +227,4 @@ export const KioskModal = ({ isOpen, onClose }) => {
     </>
   );
 };
+

@@ -29,12 +29,12 @@ export const BadgeModal = ({ isOpen, visit, onClose }) => {
           className="w-full bg-white border-2 border-slate-900 rounded-2xl overflow-hidden shadow-md my-2"
         >
           {/* Badge Header */}
-          <div className="bg-gradient-to-r from-brand-700 to-indigo-800 text-white p-4 text-center">
+          <div className="bg-[#12161F] border-b-2 border-amber-500 text-white p-4 text-center">
             <div className="flex items-center justify-center gap-2 mb-1">
-              <Shield className="w-5 h-5 text-brand-300" />
-              <span className="font-extrabold tracking-wider text-sm uppercase">SECURITY VISITOR PASS</span>
+              <Shield className="w-5 h-5 text-amber-400" />
+              <span className="font-extrabold tracking-wider text-sm uppercase font-mono">SECURITY VISITOR PASS</span>
             </div>
-            <p className="text-[11px] text-brand-200 uppercase tracking-widest font-medium">Headquarters Facility Access</p>
+            <p className="text-[10px] text-slate-400 uppercase tracking-widest font-mono">FACILITY PERIMETER CLEARANCE</p>
           </div>
 
           {/* Badge Body */}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { KioskModal } from '../components/visitors/KioskModal';
-import { dashboardService } from '../services/api';
+import { dashboardService, visitService } from '../services/api';
 import {
   Shield,
   ShieldCheck,
@@ -11,7 +11,6 @@ import {
   Users,
   QrCode,
   ArrowRight,
-  Sparkles,
   Lock,
   Cpu,
   FileSpreadsheet,
@@ -20,527 +19,623 @@ import {
   CheckCircle2,
   ChevronRight,
   ExternalLink,
-  Laptop
+  Laptop,
+  Printer,
+  Radio,
+  Terminal,
+  Layers,
+  MapPin,
+  Phone
 } from 'lucide-react';
 
 export const LandingPage = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isKioskOpen, setIsKioskOpen] = useState(false);
+  const [selectedRoleTab, setSelectedRoleTab] = useState('guard');
   const [stats, setStats] = useState({
     currentlyInside: 2,
     totalToday: 5,
     avgDurationMinutes: 45
   });
-  const [activeTab, setActiveTab] = useState('visitor');
+  const [recentVisits, setRecentVisits] = useState([]);
 
   useEffect(() => {
     dashboardService.getStats().then((res) => {
       if (res.data?.data) {
         setStats(res.data.data);
+        if (res.data.data.recentVisits) {
+          setRecentVisits(res.data.data.recentVisits.slice(0, 4));
+        }
       }
     }).catch(() => {
       // fallback
     });
   }, []);
 
-  const handleRoleNavigation = (targetPath, roleHint) => {
+  const handleLaunchRole = (targetPath, roleHint) => {
     if (user) {
       navigate(targetPath);
     } else {
-      // Navigate to login with role hint or open direct
       navigate('/login', { state: { roleHint } });
     }
   };
 
-  return (
-    <div className="min-h-screen bg-[#090D16] text-slate-100 selection:bg-brand-500 selection:text-white font-sans antialiased overflow-x-hidden">
-      {/* Subtle Background Glow Elements */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[20%] w-[500px] h-[500px] bg-brand-600/15 rounded-full blur-[140px]" />
-        <div className="absolute top-[40%] right-[-5%] w-[450px] h-[450px] bg-indigo-500/10 rounded-full blur-[140px]" />
-        <div className="absolute bottom-[-10%] left-[10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[160px]" />
-      </div>
+  const roleConfigs = {
+    visitor: {
+      tag: 'ROLE_01 // PUBLIC KIOSK',
+      title: 'Visitor & Guest Self-Service',
+      subtitle: 'Contactless self-registration terminal for walk-ins and pre-cleared guests.',
+      features: [
+        'Zero-touch smartphone check-in or touchscreen kiosk',
+        'Automatic host employee lookup & department routing',
+        'Instant cryptographic QR badge generated in under 10 seconds',
+        'No staff assistance or physical logbook required'
+      ],
+      ctaText: 'Open Visitor Kiosk Pass',
+      action: () => setIsKioskOpen(true),
+      badgeColor: 'border-amber-500/40 text-amber-400 bg-amber-500/10',
+      terminalPreview: {
+        command: 'KIOSK_REGISTRATION_DAEMON --mode=public',
+        status: 'READY FOR GUEST INPUT',
+        detail: 'Generates ISO-compliant digital badge pass with host arrival push notification.'
+      }
+    },
+    guard: {
+      tag: 'ROLE_02 // PERIMETER SECURITY',
+      title: 'Front Gate & Checkpoint Desk',
+      subtitle: 'High-velocity operational terminal for security guards and receptionists.',
+      features: [
+        '1-click rapid check-in and departure logging',
+        'Thermal badge printer integration with verified QR codes',
+        'Real-time headcount monitor with expected arrival roster',
+        'Instant identity verification & security notes'
+      ],
+      ctaText: 'Launch Gate Operations Console',
+      action: () => handleLaunchRole('/gate', 'guard'),
+      badgeColor: 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10',
+      terminalPreview: {
+        command: 'GATE_TERMINAL_SESSION --guard="Marcus Vance"',
+        status: 'LANE 01 ACTIVE // 2 GUESTS INSIDE',
+        detail: 'Direct control of checkpoint arrivals, pass printing, and perimeter logs.'
+      }
+    },
+    host: {
+      tag: 'ROLE_03 // EMPLOYEE HOST',
+      title: 'Host Employee Workspace',
+      subtitle: 'Employee dashboard for pre-scheduling clients and approving visitor arrivals.',
+      features: [
+        'Pre-register expected clients and generate advance invite links',
+        'Instant push arrival notification when your guest reaches the gate',
+        '1-tap visit approval or rejection with custom instructions',
+        'Personal visitor history and NDA verification logs'
+      ],
+      ctaText: 'Launch Host Hub (Dr. Alan Grant)',
+      action: () => handleLaunchRole('/dashboard', 'host'),
+      badgeColor: 'border-blue-500/40 text-blue-400 bg-blue-500/10',
+      terminalPreview: {
+        command: 'HOST_DISPATCH_CLIENT --user="Dr. Alan Grant"',
+        status: '1 VISIT PENDING APPROVAL',
+        detail: 'Review incoming meeting candidates and trigger automated front desk clearance.'
+      }
+    },
+    admin: {
+      tag: 'ROLE_04 // EXECUTIVE & AUDIT',
+      title: 'Administration & Incident Control',
+      subtitle: 'Enterprise governance, facility compliance, and emergency life-safety telemetry.',
+      features: [
+        'Instant 1-click OSHA/ISO emergency evacuation headcount roster',
+        'Direct click-to-call links for all visitors & hosts during crisis',
+        'Department headcount monitoring & staff role management',
+        'One-click CSV compliance and audit telemetry exports'
+      ],
+      ctaText: 'Enter Executive Command Suite',
+      action: () => handleLaunchRole('/dashboard', 'super_admin'),
+      badgeColor: 'border-slate-400/40 text-slate-300 bg-slate-400/10',
+      terminalPreview: {
+        command: 'SUPER_ADMIN_SYSCONTROL --scope=global',
+        status: 'SECURITY AUDIT READY // 100% COMPLIANT',
+        detail: 'Full organizational control, staff provisioning, and emergency crisis tools.'
+      }
+    }
+  };
 
-      {/* 1. Header / Navbar */}
-      <header className="sticky top-0 z-40 backdrop-blur-md bg-[#090D16]/80 border-b border-slate-800/80">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          {/* Brand Mark */}
+  const activeConfig = roleConfigs[selectedRoleTab];
+
+  return (
+    <div className="min-h-screen bg-[#0B0E14] text-slate-100 font-sans antialiased selection:bg-amber-500 selection:text-black relative">
+      {/* Precision Hairline Architectural Grid Background */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.035] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:3.5rem_3.5rem]" />
+
+      {/* Top Precision Header Bar */}
+      <header className="sticky top-0 z-40 bg-[#0B0E14]/95 backdrop-blur-md border-b border-slate-800/80">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 py-3.5 flex items-center justify-between">
+          {/* Brand Wordmark & Location */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/25 group-hover:scale-105 transition-transform duration-200">
+            <div className="w-9 h-9 rounded-lg bg-amber-500 text-black flex items-center justify-center font-black tracking-tighter text-sm shadow-md">
               <Building className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-bold text-white tracking-tight text-lg">VMS Enterprise</span>
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-brand-500/20 text-brand-300 border border-brand-500/30">
-                  v4.0
+                <span className="font-mono font-bold tracking-tight text-white text-base">
+                  VMS<span className="text-amber-500">//</span>CORE
+                </span>
+                <span className="text-[10px] font-mono text-slate-400 px-1.5 py-0.2 bg-slate-900 border border-slate-800 rounded">
+                  OS-4.2
                 </span>
               </div>
-              <span className="text-[10px] text-slate-400 uppercase tracking-widest block font-medium">
-                Visitor Access Control
+              <span className="text-[10px] font-mono text-slate-500 uppercase tracking-widest block">
+                Perimeter Access Architecture
               </span>
             </div>
           </Link>
 
-          {/* Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-300">
-            <a href="#portals" className="hover:text-white transition-colors">Role Gateways</a>
-            <a href="#features" className="hover:text-white transition-colors">Core Capabilities</a>
-            <a href="#security" className="hover:text-white transition-colors">Engineering & OWASP</a>
-            <a href="#stats" className="hover:text-white transition-colors">Live Telemetry</a>
+          {/* Navigation Anchors */}
+          <nav className="hidden lg:flex items-center gap-8 text-xs font-mono uppercase tracking-wider text-slate-400">
+            <a href="#matrix" className="hover:text-amber-400 transition-colors flex items-center gap-1.5">
+              <span className="text-amber-500 text-[10px]">01</span> Role Matrix
+            </a>
+            <a href="#live-roster" className="hover:text-amber-400 transition-colors flex items-center gap-1.5">
+              <span className="text-amber-500 text-[10px]">02</span> Live Telemetry
+            </a>
+            <a href="#engineering" className="hover:text-amber-400 transition-colors flex items-center gap-1.5">
+              <span className="text-amber-500 text-[10px]">03</span> SE Architecture
+            </a>
           </nav>
 
-          {/* Right Action CTAs */}
+          {/* Right Action Switcher */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsKioskOpen(true)}
-              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-slate-800/90 text-slate-200 hover:text-white hover:bg-slate-700/80 border border-slate-700/70 transition-all shadow-sm"
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-mono font-bold bg-amber-500/10 text-amber-400 hover:bg-amber-500 hover:text-black border border-amber-500/30 transition-all duration-150"
             >
-              <QrCode className="w-4 h-4 text-brand-400" />
-              <span>Visitor Self-Pass</span>
+              <QrCode className="w-3.5 h-3.5" />
+              <span>GUEST FAST-PASS</span>
             </button>
 
             {user ? (
               <div className="flex items-center gap-2">
                 <Link
-                  to="/gate"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white shadow-md shadow-brand-500/20 transition-all"
+                  to="/dashboard"
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-mono font-bold bg-slate-100 text-slate-900 hover:bg-white transition-all shadow-sm"
                 >
-                  <Laptop className="w-4 h-4" />
-                  <span>Launch Workspace</span>
+                  <Laptop className="w-3.5 h-3.5" />
+                  <span>WORKSPACE</span>
                 </Link>
                 <button
                   onClick={logout}
-                  className="text-xs text-slate-400 hover:text-rose-400 px-2 py-1"
+                  className="text-xs font-mono text-slate-400 hover:text-rose-400 px-2"
                 >
-                  Logout
+                  EXIT
                 </button>
               </div>
             ) : (
               <Link
                 to="/login"
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white shadow-md shadow-brand-500/20 transition-all"
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-mono font-bold bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition-all"
               >
-                <span>Staff Login</span>
-                <ArrowRight className="w-3.5 h-3.5" />
+                <span>STAFF AUTH</span>
+                <ArrowRight className="w-3 h-3 text-slate-400" />
               </Link>
             )}
           </div>
         </div>
       </header>
 
-      {/* 2. Hero Section */}
-      <section className="relative pt-12 pb-20 md:pt-20 md:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto z-10">
-        <div className="text-center max-w-3xl mx-auto">
-          {/* Status Chip */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/60 shadow-inner mb-6">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span className="text-xs font-medium text-slate-300">
-              Live Checkpoint Telemetry • Facility Alpha Online
-            </span>
-          </div>
-
-          {/* Main Title */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
-            Total Perimeter Security.{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 via-indigo-300 to-sky-300">
-              Zero Friction for Guests.
-            </span>
-          </h1>
-
-          {/* Subtitle */}
-          <p className="mt-6 text-base sm:text-lg text-slate-400 leading-relaxed max-w-2xl mx-auto">
-            A next-generation enterprise access control platform. Contactless cryptographic QR passes, real-time host dispatch, instant evacuation accountability, and certified RBAC security.
-          </p>
-
-          {/* Primary Action Row */}
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-              onClick={() => setIsKioskOpen(true)}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl text-sm font-bold bg-gradient-to-r from-brand-600 via-indigo-600 to-blue-600 hover:from-brand-500 hover:to-blue-500 text-white shadow-xl shadow-brand-600/30 transition-all active:scale-[0.98]"
-            >
-              <QrCode className="w-5 h-5 text-brand-200" />
-              <span>Visitor Self-Registration (Kiosk)</span>
-            </button>
-
-            <a
-              href="#portals"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-semibold bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700 transition-all"
-            >
-              <span>Explore Role Gateways</span>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
-            </a>
-          </div>
-        </div>
-
-        {/* Hero Interactive Telemetry Preview Console */}
-        <div className="mt-14 max-w-4xl mx-auto rounded-2xl bg-gradient-to-b from-slate-800/60 to-slate-900/90 border border-slate-700/70 p-2 sm:p-4 shadow-2xl backdrop-blur-xl relative overflow-hidden">
-          <div className="bg-[#0B101B] rounded-xl p-4 sm:p-6 border border-slate-800">
-            {/* Console Bar */}
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800/80 mb-5">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-rose-500/80 inline-block" />
-                <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block" />
-                <span className="w-3 h-3 rounded-full bg-emerald-500/80 inline-block" />
-                <span className="text-xs font-mono text-slate-400 ml-2">GATEWAY_DAEMON // PORT 5000: LIVE</span>
-              </div>
-              <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                ACTIVE ROSTER: {stats.currentlyInside} INSIDE
-              </span>
+      {/* Main Architectural Hero: Asymmetric Split */}
+      <section className="pt-10 pb-16 md:pt-16 md:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
+          {/* Left Column: High-Impact Typography & Narrative */}
+          <div className="lg:col-span-7">
+            {/* Minimalist Beacon */}
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-slate-900/90 border border-slate-800 text-[11px] font-mono text-slate-400 mb-6">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-slate-300">FACILITY GATEWAY ACTIVE</span>
+              <span className="text-slate-600">|</span>
+              <span className="text-amber-400">100% ACCOUNTABILITY</span>
             </div>
 
-            {/* Console Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Live Badge Preview Card */}
-              <div className="bg-slate-900/90 rounded-xl p-4 border border-slate-800 flex flex-col items-center text-center">
-                <span className="text-[10px] font-mono text-brand-400 uppercase tracking-widest mb-2 font-bold">
-                  CRYPTOGRAPHIC PASS SIMULATOR
-                </span>
-                <div className="p-2.5 bg-white rounded-lg shadow-md my-1">
-                  <div className="w-24 h-24 bg-slate-900 rounded flex flex-col items-center justify-center text-white">
-                    <QrCode className="w-14 h-14 text-indigo-400" />
-                    <span className="text-[8px] font-mono text-slate-400 mt-1">VERIFIED</span>
-                  </div>
-                </div>
-                <p className="text-xs font-bold text-white mt-2">Alex Mercer</p>
-                <p className="text-[11px] text-slate-400">GenTek Dynamics • Tech Tower 4F</p>
-                <span className="mt-2 text-[10px] font-mono bg-emerald-900/40 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded">
-                  BADGE: VMS-20261103-1001
-                </span>
+            {/* Iron 2-Line Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.08] uppercase font-sans">
+              Who enters.<br />
+              Who authorizes.<br />
+              <span className="text-amber-500">In 4 seconds.</span>
+            </h1>
+
+            {/* Concrete Copy */}
+            <p className="mt-6 text-base text-slate-400 leading-relaxed max-w-xl">
+              An architectural visitor access control platform engineered for high-security commercial facilities. Eliminates paper logs with cryptographic QR passes, instant host arrival dispatch, and life-safety evacuation telemetry.
+            </p>
+
+            {/* Interactive Tactile Role Switcher Dock */}
+            <div className="mt-8 pt-6 border-t border-slate-800/80">
+              <span className="block text-[11px] font-mono uppercase tracking-wider text-slate-400 mb-3 font-semibold">
+                SELECT PERIMETER ROLE GATEWAY:
+              </span>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { id: 'visitor', label: '01 / Guest Kiosk' },
+                  { id: 'guard', label: '02 / Guard Terminal' },
+                  { id: 'host', label: '03 / Host Hub' },
+                  { id: 'admin', label: '04 / Admin Suite' }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setSelectedRoleTab(item.id)}
+                    className={`px-3 py-2.5 rounded-lg text-xs font-mono font-bold transition-all text-left flex flex-col justify-between border ${
+                      selectedRoleTab === item.id
+                        ? 'bg-amber-500 text-black border-amber-400 shadow-md scale-[1.02]'
+                        : 'bg-slate-900/80 text-slate-400 hover:text-white border-slate-800 hover:border-slate-700'
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                  </button>
+                ))}
               </div>
 
-              {/* Real-Time Metrics */}
-              <div className="bg-slate-900/90 rounded-xl p-4 border border-slate-800 flex flex-col justify-between">
+              {/* Active Role Quick Launcher Bar */}
+              <div className="mt-4 p-4 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-2 font-bold">
-                    SECURITY CHECKPOINT METRICS
-                  </span>
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex justify-between text-xs text-slate-300 mb-1">
-                        <span>Check-In Velocity</span>
-                        <span className="text-emerald-400 font-mono font-bold">&lt; 14 sec</span>
-                      </div>
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                        <div className="w-[92%] h-full bg-emerald-500 rounded-full" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between text-xs text-slate-300 mb-1">
-                        <span>Personnel Accountability</span>
-                        <span className="text-brand-400 font-mono font-bold">100%</span>
-                      </div>
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                        <div className="w-full h-full bg-brand-500 rounded-full" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex justify-between text-xs text-slate-300 mb-1">
-                        <span>Host Arrival Dispatch</span>
-                        <span className="text-indigo-400 font-mono font-bold">Instant SMS/Web</span>
-                      </div>
-                      <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                        <div className="w-[96%] h-full bg-indigo-500 rounded-full" />
-                      </div>
-                    </div>
+                  <div className="text-xs font-mono text-amber-400 font-semibold uppercase">
+                    {activeConfig.tag}
+                  </div>
+                  <div className="text-sm font-bold text-white mt-0.5">
+                    {activeConfig.title}
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 flex items-center justify-between">
-                  <span>Evacuation telemetry:</span>
-                  <span className="text-emerald-400 font-semibold">Active & Armed</span>
+                <button
+                  onClick={activeConfig.action}
+                  className="px-5 py-2.5 rounded-lg text-xs font-mono font-bold bg-white hover:bg-slate-100 text-slate-950 flex items-center gap-2 shrink-0 transition-transform active:scale-[0.98] shadow"
+                >
+                  <span>{activeConfig.ctaText}</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Physical Digital Smart Badge (Interactive High-Craft Card) */}
+          <div className="lg:col-span-5 flex justify-center">
+            <div className="w-full max-w-sm bg-[#111620] border-2 border-slate-700/80 rounded-2xl overflow-hidden shadow-2xl relative">
+              {/* Lanyard Cutout Slot */}
+              <div className="w-full bg-[#0E121A] py-3 border-b border-slate-800 flex justify-center">
+                <div className="w-16 h-2 rounded-full bg-[#1F2736] border border-slate-700/60" />
+              </div>
+
+              {/* Badge Security Header */}
+              <div className="p-5 border-b border-slate-800 bg-[#141B26]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                    <span className="text-xs font-mono font-bold tracking-wider text-slate-200 uppercase">
+                      PERIMETER CLEARANCE
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
+                    ACTIVE PASS
+                  </span>
+                </div>
+                <div className="mt-1 text-[11px] font-mono text-slate-400">
+                  SERIAL: <span className="text-white font-bold">VMS-20261103-1001</span>
                 </div>
               </div>
 
-              {/* Checkpoint Quick Action Box */}
-              <div className="bg-slate-900/90 rounded-xl p-4 border border-slate-800 flex flex-col justify-between">
-                <div>
-                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block mb-2 font-bold">
-                    QUICK ROLE ENTRY
+              {/* Badge Body */}
+              <div className="p-6 flex flex-col items-center text-center">
+                {/* QR Code Container */}
+                <div className="p-3 bg-white rounded-xl shadow-inner mb-4 relative group">
+                  <div className="w-36 h-36 bg-slate-900 rounded flex items-center justify-center">
+                    <QrCode className="w-28 h-28 text-amber-400" />
+                  </div>
+                  <span className="absolute bottom-1 right-2 text-[8px] font-mono text-black font-bold uppercase">
+                    ENCRYPTED
                   </span>
-                  <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                    Jump straight into designated security consoles with single-click authenticated role sessions.
-                  </p>
                 </div>
 
-                <div className="space-y-2">
-                  <button
-                    onClick={() => handleRoleNavigation('/gate', 'guard')}
-                    className="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-left flex items-center justify-between transition-colors"
-                  >
-                    <span>Gate Reception Desk</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </button>
+                {/* Visitor Information */}
+                <h3 className="text-xl font-bold text-white tracking-tight">Alex Mercer</h3>
+                <p className="text-xs font-mono text-amber-400 font-semibold mt-0.5">GenTek Dynamics Inc.</p>
 
+                {/* Clearance Matrix */}
+                <div className="w-full mt-5 pt-4 border-t border-slate-800/80 text-left text-xs font-mono space-y-2">
+                  <div className="flex justify-between items-center py-0.5 border-b border-slate-800/50">
+                    <span className="text-slate-400">HOST:</span>
+                    <span className="text-slate-200 font-bold">Dr. Alan Grant</span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-0.5 border-b border-slate-800/50">
+                    <span className="text-slate-400">WING/FLOOR:</span>
+                    <span className="text-slate-200 font-bold">Engineering • 4F</span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-0.5">
+                    <span className="text-slate-400">ENTRY TIME:</span>
+                    <span className="text-emerald-400 font-bold">TODAY, 08:30 AM</span>
+                  </div>
+                </div>
+
+                {/* Badge Action Buttons */}
+                <div className="w-full mt-6 flex gap-2">
                   <button
-                    onClick={() => handleRoleNavigation('/', 'super_admin')}
-                    className="w-full py-2 px-3 rounded-lg text-xs font-semibold bg-brand-600/20 hover:bg-brand-600/30 text-brand-300 border border-brand-500/30 text-left flex items-center justify-between transition-colors"
+                    onClick={() => setIsKioskOpen(true)}
+                    className="flex-1 py-2 px-3 rounded-lg text-xs font-mono font-bold bg-amber-500 hover:bg-amber-400 text-black transition-colors"
                   >
-                    <span>Operations Dashboard</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    GENERATE YOURS
+                  </button>
+                  <button
+                    onClick={() => window.print()}
+                    className="py-2 px-3 rounded-lg text-xs font-mono bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 flex items-center justify-center transition-colors"
+                    title="Print Test Pass"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
                   </button>
                 </div>
+              </div>
+
+              {/* Bottom Security Strip */}
+              <div className="bg-[#0E121A] py-2 px-4 border-t border-slate-800 text-[9px] font-mono text-slate-400 text-center uppercase tracking-widest">
+                Surrender to gate security upon building departure
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 3. Section: Unified Role Gateways (Direct Role Navigation) */}
-      <section id="portals" className="py-20 bg-slate-950/60 border-y border-slate-800/80 relative z-10">
+      {/* 2. Interactive Role Matrix Console (Deep Architectural Explorer) */}
+      <section id="matrix" className="py-20 bg-[#0E131C] border-y border-slate-800/80 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
+            <div>
+              <span className="text-xs font-mono font-bold text-amber-500 uppercase tracking-widest block mb-1">
+                SYSTEM MODULE 01 // OPERATIONAL WORKSPACES
+              </span>
+              <h2 className="text-3xl font-black text-white tracking-tight uppercase">
+                The Role Gateway Console
+              </h2>
+            </div>
+            <p className="text-xs font-mono text-slate-400 mt-2 md:mt-0 max-w-md">
+              Every persona operates within an isolated, certified RBAC authorization perimeter.
+            </p>
+          </div>
+
+          {/* Master-Detail Interactive Terminal Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            {/* Left Column: 4 Selectable Role Tiles */}
+            <div className="lg:col-span-5 space-y-3">
+              {Object.entries(roleConfigs).map(([key, config]) => (
+                <button
+                  key={key}
+                  onClick={() => setSelectedRoleTab(key)}
+                  className={`w-full text-left p-4 rounded-xl border transition-all ${
+                    selectedRoleTab === key
+                      ? 'bg-[#151C28] border-amber-500/70 shadow-lg'
+                      : 'bg-[#10151E] border-slate-800/80 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded border ${config.badgeColor}`}>
+                      {config.tag}
+                    </span>
+                    {selectedRoleTab === key && (
+                      <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                    )}
+                  </div>
+                  <h3 className="text-base font-bold text-white mt-1">{config.title}</h3>
+                  <p className="text-xs text-slate-400 mt-0.5 line-clamp-1">{config.subtitle}</p>
+                </button>
+              ))}
+            </div>
+
+            {/* Right Column: Terminal Specification Preview & Direct Trigger */}
+            <div className="lg:col-span-7 bg-[#10151E] border border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col justify-between">
+              <div>
+                {/* Console Bar */}
+                <div className="flex items-center justify-between pb-4 border-b border-slate-800 font-mono text-xs text-slate-400">
+                  <div className="flex items-center gap-2">
+                    <Terminal className="w-4 h-4 text-amber-500" />
+                    <span>{activeConfig.terminalPreview.command}</span>
+                  </div>
+                  <span className="text-emerald-400 font-semibold">{activeConfig.terminalPreview.status}</span>
+                </div>
+
+                {/* Role Details */}
+                <div className="mt-6">
+                  <h3 className="text-2xl font-bold text-white tracking-tight">{activeConfig.title}</h3>
+                  <p className="text-sm text-slate-300 mt-1 leading-relaxed">{activeConfig.subtitle}</p>
+
+                  <div className="mt-6 space-y-2.5">
+                    <span className="text-xs font-mono text-slate-400 uppercase tracking-wider block font-bold">
+                      VERIFIED OPERATIONAL RESPONSIBILITIES:
+                    </span>
+                    {activeConfig.features.map((feat, idx) => (
+                      <div key={idx} className="flex items-start gap-2.5 text-xs text-slate-300">
+                        <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                        <span>{feat}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Launch & Test Credentials Footer */}
+              <div className="mt-8 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="text-[11px] font-mono text-slate-400">
+                  {selectedRoleTab === 'visitor' ? (
+                    <span>PUBLIC ACCESS • NO STAFF CREDENTIALS REQUIRED</span>
+                  ) : (
+                    <span>AUTHENTICATION: 1-CLICK DEMO SESSION AVAILABLE</span>
+                  )}
+                </div>
+
+                <button
+                  onClick={activeConfig.action}
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl text-xs font-mono font-bold bg-amber-500 hover:bg-amber-400 text-black flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98]"
+                >
+                  <span>{activeConfig.ctaText}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Live Facility Telemetry & Current Roster (Actual Backend Data Stream) */}
+      <section id="live-roster" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8">
+          <div>
+            <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest block mb-1">
+              SYSTEM MODULE 02 // REAL-TIME ACCESS LOG
+            </span>
+            <h2 className="text-3xl font-black text-white tracking-tight uppercase">
+              Current Facility Telemetry
+            </h2>
+          </div>
+          <div className="flex items-center gap-4 text-xs font-mono text-slate-400 mt-2 md:mt-0">
+            <span className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>{stats.currentlyInside} GUESTS INSIDE</span>
+            </span>
+            <span>•</span>
+            <span>{stats.totalToday} CHECK-INS TODAY</span>
+          </div>
+        </div>
+
+        {/* Live Roster Table */}
+        <div className="bg-[#10151E] rounded-xl border border-slate-800 overflow-hidden shadow-xl">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs font-mono">
+              <thead className="bg-[#141B26] text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                <tr>
+                  <th className="px-5 py-3">Visitor Name</th>
+                  <th className="px-5 py-3">Company</th>
+                  <th className="px-5 py-3">Host Contact</th>
+                  <th className="px-5 py-3">Assigned Department</th>
+                  <th className="px-5 py-3">Badge Serial</th>
+                  <th className="px-5 py-3">Checkpoint Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/80 text-slate-300">
+                {recentVisits.length > 0 ? (
+                  recentVisits.map((v) => (
+                    <tr key={v.id} className="hover:bg-slate-800/40 transition-colors">
+                      <td className="px-5 py-3.5 font-bold text-white">{v.visitor?.fullName}</td>
+                      <td className="px-5 py-3.5 text-slate-400">{v.visitor?.company || 'Personal Guest'}</td>
+                      <td className="px-5 py-3.5 text-slate-200">{v.host?.fullName}</td>
+                      <td className="px-5 py-3.5 text-slate-400">{v.department?.name || 'General Access'}</td>
+                      <td className="px-5 py-3.5 text-amber-400 font-bold">{v.badgeNumber || 'PENDING'}</td>
+                      <td className="px-5 py-3.5">
+                        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                          v.status === 'checked_in'
+                            ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                            : 'bg-slate-800 text-slate-400 border border-slate-700'
+                        }`}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                          {v.status === 'checked_in' ? 'Inside Building' : v.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="text-center py-8 text-slate-500">
+                      Telemetry sync active. Live entries will appear here.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Engineering Architecture & Incident Control Section */}
+      <section id="engineering" className="py-20 bg-[#0E131C] border-t border-slate-800/80 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <span className="text-xs font-mono font-bold text-brand-400 uppercase tracking-wider bg-brand-500/10 px-3 py-1 rounded-full border border-brand-500/20">
-              ROLE-BASED SYSTEM MATRIX
+            <span className="text-xs font-mono font-bold text-slate-400 uppercase tracking-widest bg-slate-800/80 px-3 py-1 rounded border border-slate-700">
+              SOFTWARE ENGINEERING CERTIFICATION
             </span>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-3">
-              Unified Portals for Every Persona
+            <h2 className="text-3xl font-black text-white tracking-tight uppercase mt-3">
+              Built to Stringent SE & Security Specs
             </h2>
-            <p className="text-sm text-slate-400 mt-2">
-              Select your persona to enter your designated workspace with certified RBAC permission barriers.
+            <p className="text-xs font-mono text-slate-400 mt-2">
+              Layered client-server architecture with relational database constraints and zero security compromises.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Gateway 1: Visitor */}
-            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 hover:border-brand-500/60 transition-all hover:-translate-y-1 group flex flex-col justify-between shadow-xl">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                  <QrCode className="w-6 h-6" />
-                </div>
-                <div className="inline-block px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-blue-500/10 text-blue-300 border border-blue-500/20 mb-2">
-                  PUBLIC KIOSK
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Visitor Self-Pass</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Touchless self-registration for walk-ins and pre-registered guests. Generates a digital QR badge and notifies your host immediately.
-                </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Card 1 */}
+            <div className="p-6 rounded-xl bg-[#10151E] border border-slate-800">
+              <div className="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold mb-4">
+                <Lock className="w-4 h-4" />
               </div>
-
-              <div className="mt-6 pt-4 border-t border-slate-800/80">
-                <button
-                  onClick={() => setIsKioskOpen(true)}
-                  className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center gap-2 shadow-md shadow-blue-600/20 transition-all"
-                >
-                  <span>Register Guest Pass</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              <h4 className="text-sm font-bold text-white uppercase font-mono">OWASP Top 10 Hardened</h4>
+              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                Full protection suite including Helmet HTTP security headers, CORS strictness, bcrypt 10-round salted password hashing, and parameterized SQL queries to prevent SQL injections.
+              </p>
             </div>
 
-            {/* Gateway 2: Security Guard */}
-            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 hover:border-emerald-500/60 transition-all hover:-translate-y-1 group flex flex-col justify-between shadow-xl">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                  <ShieldCheck className="w-6 h-6" />
-                </div>
-                <div className="inline-block px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 mb-2">
-                  SECURITY & DESK
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Gate Operations</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Fast 1-click arrival check-in and check-out, live headcount monitor, identity verification, and thermal badge pass printing.
-                </p>
+            {/* Card 2 */}
+            <div className="p-6 rounded-xl bg-[#10151E] border border-slate-800">
+              <div className="w-9 h-9 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center font-bold mb-4">
+                <AlertTriangle className="w-4 h-4" />
               </div>
-
-              <div className="mt-6 pt-4 border-t border-slate-800/80">
-                <button
-                  onClick={() => handleRoleNavigation('/gate', 'guard')}
-                  className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition-all"
-                >
-                  <span>Launch Gate Console</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              <h4 className="text-sm font-bold text-white uppercase font-mono">Life-Safety Evacuation Engine</h4>
+              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                1-click emergency evacuation roster delivering instant headcount of every human located inside premises with building wing locations and click-to-call links for emergency commanders.
+              </p>
             </div>
 
-            {/* Gateway 3: Host Employee */}
-            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 hover:border-indigo-500/60 transition-all hover:-translate-y-1 group flex flex-col justify-between shadow-xl">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                  <UserCheck className="w-6 h-6" />
-                </div>
-                <div className="inline-block px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 mb-2">
-                  STAFF & EMPLOYEES
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Host Workspace</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Pre-register expected client visits, receive real-time front gate arrival alerts, and approve or reject meeting access requests.
-                </p>
+            {/* Card 3 */}
+            <div className="p-6 rounded-xl bg-[#10151E] border border-slate-800">
+              <div className="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold mb-4">
+                <Cpu className="w-4 h-4" />
               </div>
-
-              <div className="mt-6 pt-4 border-t border-slate-800/80">
-                <button
-                  onClick={() => handleRoleNavigation('/', 'host')}
-                  className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center gap-2 shadow-md shadow-indigo-600/20 transition-all"
-                >
-                  <span>Access Host Suite</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Gateway 4: Super Admin */}
-            <div className="bg-slate-900/80 rounded-2xl p-6 border border-slate-800 hover:border-purple-500/60 transition-all hover:-translate-y-1 group flex flex-col justify-between shadow-xl">
-              <div>
-                <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                  <Building className="w-6 h-6" />
-                </div>
-                <div className="inline-block px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20 mb-2">
-                  EXECUTIVE & COMPLIANCE
-                </div>
-                <h3 className="text-lg font-bold text-white mb-2">Admin Command</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Enterprise analytics, department headcount management, staff provisioning, emergency evacuation roster, and CSV audit logs.
-                </p>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-slate-800/80">
-                <button
-                  onClick={() => handleRoleNavigation('/', 'super_admin')}
-                  className="w-full py-2.5 px-4 rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-500 text-white flex items-center justify-center gap-2 shadow-md shadow-purple-600/20 transition-all"
-                >
-                  <span>Enter Admin Suite</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              <h4 className="text-sm font-bold text-white uppercase font-mono">Dual-Dialect SQL Architecture</h4>
+              <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                Sequelize ORM configured for zero-friction local SQLite development and cloud production PostgreSQL (Supabase / Render) with foreign key integrity and automated seeders.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 4. Section: Engineering Architecture & Security Standards */}
-      <section id="security" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 z-10 relative">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <span className="text-xs font-mono font-bold text-indigo-400 uppercase tracking-wider bg-indigo-500/10 px-3 py-1 rounded-full border border-indigo-500/20">
-            SOFTWARE ENGINEERING RIGOR
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mt-3">
-            Built for Academic & Production Standards
-          </h2>
-          <p className="text-sm text-slate-400 mt-2">
-            Engineered adhering to OWASP Top 10 guidelines, relational integrity, and strict layered client-server patterns.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <div className="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-400 flex items-center justify-center mb-4">
-              <Lock className="w-5 h-5" />
-            </div>
-            <h4 className="text-base font-bold text-white mb-2">OWASP Hardened Security</h4>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Equipped with Helmet security headers, rate limiting (anti-brute-force), bcrypt 10-round salted password hashing, and parameterized SQL queries to eliminate SQL injection.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-4">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-            <h4 className="text-base font-bold text-white mb-2">Life-Safety Evacuation Engine</h4>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Instant 1-click crisis roster that lists every single external visitor currently inside premises with floor locations and direct click-to-call links for emergency commanders.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center mb-4">
-              <Cpu className="w-5 h-5" />
-            </div>
-            <h4 className="text-base font-bold text-white mb-2">Dual SQL Architecture</h4>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Seamlessly configured for zero-setup local execution (SQLite dialect) and cloud PostgreSQL deployment (Supabase / Render) using Sequelize ORM migrations.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* 5. Section: Live Telemetry & Metrics Bar */}
-      <section id="stats" className="py-12 bg-slate-950 border-t border-slate-800/80 z-10 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-            <div className="p-4">
-              <span className="block text-3xl sm:text-4xl font-extrabold text-white font-mono">
-                {stats.currentlyInside}
-              </span>
-              <span className="text-xs text-emerald-400 uppercase tracking-wider font-semibold mt-1 block">
-                Active Guests Inside
-              </span>
-            </div>
-
-            <div className="p-4">
-              <span className="block text-3xl sm:text-4xl font-extrabold text-white font-mono">
-                {stats.totalToday}
-              </span>
-              <span className="text-xs text-brand-400 uppercase tracking-wider font-semibold mt-1 block">
-                Total Check-Ins Today
-              </span>
-            </div>
-
-            <div className="p-4">
-              <span className="block text-3xl sm:text-4xl font-extrabold text-white font-mono">
-                &lt; 15s
-              </span>
-              <span className="text-xs text-indigo-400 uppercase tracking-wider font-semibold mt-1 block">
-                Average Entry Time
-              </span>
-            </div>
-
-            <div className="p-4">
-              <span className="block text-3xl sm:text-4xl font-extrabold text-white font-mono">
-                100%
-              </span>
-              <span className="text-xs text-sky-400 uppercase tracking-wider font-semibold mt-1 block">
-                Audit Trail Compliance
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 6. Footer */}
-      <footer className="bg-[#060910] border-t border-slate-900 py-12 text-slate-400 text-xs z-10 relative">
+      {/* 5. Minimalist Precision Footer */}
+      <footer className="bg-[#080B10] border-t border-slate-900 py-12 text-slate-400 text-xs font-mono relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center text-white font-bold">
+            <div className="w-7 h-7 rounded bg-amber-500 text-black flex items-center justify-center font-black">
               <Building className="w-4 h-4" />
             </div>
             <div>
-              <p className="font-bold text-white">Visitor Management System (VMS)</p>
-              <p className="text-[11px] text-slate-500">Certified Software Engineering Final Year Project</p>
+              <span className="font-bold text-white tracking-wider">VISITOR MANAGEMENT SYSTEM (VMS)</span>
+              <p className="text-[10px] text-slate-500">FINAL YEAR SOFTWARE ENGINEERING PROJECT SUBMISSION</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-6 text-[11px]">
             <a
               href="https://github.com/Prithwiraj731/Visitor-Management-System"
               target="_blank"
               rel="noreferrer"
-              className="hover:text-white flex items-center gap-1 transition-colors"
+              className="hover:text-amber-400 flex items-center gap-1 transition-colors"
             >
-              <span>GitHub Repository</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <span>GITHUB REPOSITORY</span>
+              <ExternalLink className="w-3 h-3" />
             </a>
-            <button
-              onClick={() => setIsKioskOpen(true)}
-              className="hover:text-brand-400 transition-colors"
-            >
-              Visitor Fast-Pass
+            <button onClick={() => setIsKioskOpen(true)} className="hover:text-amber-400 transition-colors">
+              GUEST PASS
             </button>
-            <Link to="/login" className="hover:text-brand-400 transition-colors">
-              Staff Portal
+            <Link to="/login" className="hover:text-amber-400 transition-colors">
+              STAFF PORTAL
             </Link>
           </div>
 
-          <p className="text-slate-500 text-[11px]">
-            Designed with Titanium & Obsidian Precision Palette. © 2026.
+          <p className="text-slate-600 text-[10px]">
+            PRECISION TITANIUM & SIGNAL AMBER PALETTE • 2026
           </p>
         </div>
       </footer>
