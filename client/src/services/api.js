@@ -58,6 +58,7 @@ export const visitService = {
   getVisits: (params) => api.get('/visits', { params }),
   getTodayVisits: () => api.get('/visits/today'),
   createVisit: (payload) => api.post('/visits', payload),
+  createKioskVisit: (payload) => api.post('/visits/kiosk', payload),
   checkIn: (id) => api.patch(`/visits/${id}/check-in`),
   checkOut: (id) => api.patch(`/visits/${id}/check-out`),
   approve: (id) => api.patch(`/visits/${id}/approve`),

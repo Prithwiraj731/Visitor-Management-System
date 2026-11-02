@@ -14,6 +14,9 @@ import { authorize } from '../middleware/rbac.js';
 
 const router = Router();
 
+// Public Kiosk Self-Registration (allows guests to register & receive their QR pass directly)
+router.post('/kiosk', createVisit);
+
 router.use(authenticate);
 
 router.post('/', createVisit);

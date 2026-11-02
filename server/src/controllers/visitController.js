@@ -86,14 +86,14 @@ export const createVisit = async (req, res, next) => {
     });
     const qrCodeDataUrl = await QRCode.toDataURL(qrPayload, { width: 300, margin: 1 });
 
-    const isDirectCheckIn = (autoCheckIn && (req.user.role === 'guard' || req.user.role === 'admin' || req.user.role === 'super_admin'));
+    const isDirectCheckIn = (autoCheckIn && (!req.user || req.user?.role === 'guard' || req.user?.role === 'admin' || req.user?.role === 'super_admin'));
     const initialStatus = isDirectCheckIn ? 'checked_in' : (visitType === 'pre_registered' ? 'pending' : 'checked_in');
 
     const visit = await Visit.create({
       visitorId: visitor.id,
       hostId: hostUser.id,
       departmentId: targetDeptId,
-      guardId: req.user.role === 'guard' ? req.user.id : null,
+      guardId: req.user?.role === 'guard' ? req.user.id : null,
       purpose,
       visitType,
       status: initialStatus,

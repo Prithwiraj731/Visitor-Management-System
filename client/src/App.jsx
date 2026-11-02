@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { GateViewPage } from './pages/GateViewPage';
@@ -26,7 +27,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   if (allowedRoles && !hasRole(...allowedRoles)) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
@@ -37,10 +38,15 @@ export function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Public Modern Landing Page */}
+          <Route path="/" element={<LandingPage />} />
+
+          {/* Authentication Gateway */}
           <Route path="/login" element={<LoginPage />} />
 
+          {/* Operations Dashboard */}
           <Route
-            path="/"
+            path="/dashboard"
             element={
               <ProtectedRoute>
                 <DashboardPage />
@@ -48,6 +54,7 @@ export function App() {
             }
           />
 
+          {/* Security Gate Terminal */}
           <Route
             path="/gate"
             element={
@@ -57,6 +64,7 @@ export function App() {
             }
           />
 
+          {/* Visitor History & Logs */}
           <Route
             path="/visitors"
             element={
@@ -66,6 +74,7 @@ export function App() {
             }
           />
 
+          {/* Departments Directory */}
           <Route
             path="/departments"
             element={
@@ -75,6 +84,7 @@ export function App() {
             }
           />
 
+          {/* Staff Roles & Permissions */}
           <Route
             path="/staff"
             element={
@@ -84,6 +94,7 @@ export function App() {
             }
           />
 
+          {/* Analytics & Export Reports */}
           <Route
             path="/reports"
             element={
@@ -93,6 +104,7 @@ export function App() {
             }
           />
 
+          {/* Emergency Crisis Manifest */}
           <Route
             path="/emergency"
             element={
@@ -102,6 +114,7 @@ export function App() {
             }
           />
 
+          {/* Catch-all redirect */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
@@ -110,4 +123,3 @@ export function App() {
 }
 
 export default App;
-

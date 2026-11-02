@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import {
   LayoutDashboard,
   ShieldCheck,
@@ -10,7 +10,8 @@ import {
   UserCheck,
   LogOut,
   Building,
-  UserPlus
+  UserPlus,
+  Globe
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Badge } from '../common/Badge';
@@ -19,13 +20,14 @@ export const Sidebar = ({ mobileOpen, setMobileOpen, onOpenNewVisit }) => {
   const { user, logout, hasRole } = useAuth();
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['super_admin', 'admin', 'guard', 'host'] },
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['super_admin', 'admin', 'guard', 'host'] },
     { name: 'Gate Operations', href: '/gate', icon: ShieldCheck, roles: ['super_admin', 'admin', 'guard'] },
     { name: 'Visitors Log', href: '/visitors', icon: Users, roles: ['super_admin', 'admin', 'guard', 'host'] },
     { name: 'Departments', href: '/departments', icon: Building2, roles: ['super_admin', 'admin', 'guard', 'host'] },
     { name: 'Staff & Roles', href: '/staff', icon: UserCheck, roles: ['super_admin', 'admin'] },
     { name: 'Analytics & Reports', href: '/reports', icon: FileBarChart2, roles: ['super_admin', 'admin', 'guard'] },
     { name: 'Emergency Manifest', href: '/emergency', icon: AlertTriangle, roles: ['super_admin', 'admin', 'guard'], danger: true },
+    { name: 'Public Homepage', href: '/', icon: Globe, roles: ['super_admin', 'admin', 'guard', 'host'] },
   ];
 
   const filteredNav = navigation.filter(item => hasRole(...item.roles));
@@ -47,7 +49,7 @@ export const Sidebar = ({ mobileOpen, setMobileOpen, onOpenNewVisit }) => {
         }`}
       >
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800 bg-slate-950/40">
+        <Link to="/" className="h-16 flex items-center justify-between px-6 border-b border-slate-800 bg-slate-950/40 hover:bg-slate-900/60 transition-colors">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
               <Building className="w-5 h-5" />
@@ -57,7 +59,7 @@ export const Sidebar = ({ mobileOpen, setMobileOpen, onOpenNewVisit }) => {
               <span className="text-[10px] text-brand-400 font-medium uppercase tracking-wider block">Enterprise Security</span>
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* Quick Check-In CTA Button */}
         {(hasRole('super_admin', 'admin', 'guard')) && (
