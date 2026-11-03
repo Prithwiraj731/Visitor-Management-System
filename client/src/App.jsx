@@ -10,6 +10,7 @@ import { DepartmentsPage } from './pages/DepartmentsPage';
 import { StaffPage } from './pages/StaffPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { EvacuationPage } from './pages/EvacuationPage';
+import { SupabaseTestPage } from './pages/SupabaseTestPage';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading, hasRole } = useAuth();
@@ -43,6 +44,9 @@ export function App() {
 
           {/* Authentication Gateway */}
           <Route path="/login" element={<LoginPage />} />
+
+          {/* Supabase Integration Verification */}
+          <Route path="/supabase-test" element={<SupabaseTestPage />} />
 
           {/* Operations Dashboard */}
           <Route

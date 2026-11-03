@@ -4,7 +4,8 @@
 
 @layer base {
   body {
-    @apply min-h-screen bg-slate-50 text-slate-800 antialiased;
+    @apply min-h-screen bg-[#08090C] text-slate-100 antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 }
 
@@ -15,16 +16,62 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #08090c;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #222733;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #333a4c;
+}
+
+/* Laser Scanner Beam Keyframe Animation */
+@keyframes laser-sweep {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    top: 96%;
+    opacity: 1;
+  }
+  100% {
+    top: 0%;
+    opacity: 0.8;
+  }
+}
+
+.animate-laser {
+  animation: laser-sweep 2.6s ease-in-out infinite;
+}
+
+/* Hologram Shimmer Animation */
+@keyframes holo-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.hologram-strip {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(245, 158, 11, 0.25) 25%,
+    rgba(16, 185, 129, 0.3) 50%,
+    rgba(56, 189, 248, 0.25) 75%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 200%;
+  animation: holo-shimmer 4s ease infinite;
 }
 
 /* Print styling for Visitor Badge */
@@ -46,4 +93,5 @@
     border: none;
   }
 }
+
 
