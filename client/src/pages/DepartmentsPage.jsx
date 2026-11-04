@@ -109,12 +109,12 @@ export const DepartmentsPage = () => {
       >
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Department Name *</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1">Department Name *</label>
             <input
               type="text"
               required
               placeholder="e.g. Legal & Compliance"
-              className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+              className="w-full px-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             />
@@ -122,21 +122,21 @@ export const DepartmentsPage = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Building</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1">Building</label>
               <input
                 type="text"
                 placeholder="e.g. Main Tower"
-                className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                className="w-full px-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none"
                 value={formData.building}
                 onChange={(e) => setFormData({ ...formData, building: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Floor</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1">Floor</label>
               <input
                 type="text"
                 placeholder="e.g. 5th Floor"
-                className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                className="w-full px-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none"
                 value={formData.floor}
                 onChange={(e) => setFormData({ ...formData, floor: e.target.value })}
               />
@@ -144,15 +144,15 @@ export const DepartmentsPage = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Department Head</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1">Department Head</label>
             <select
-              className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+              className="w-full px-3 py-2 text-sm text-slate-900 font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none cursor-pointer"
               value={formData.headId}
               onChange={(e) => setFormData({ ...formData, headId: e.target.value })}
             >
-              <option value="">Select Employee</option>
+              <option value="" className="text-slate-900 bg-white">Select Employee</option>
               {hosts.map((h) => (
-                <option key={h.id} value={h.id}>
+                <option key={h.id} value={h.id} className="text-slate-900 bg-white">
                   {h.fullName}
                 </option>
               ))}

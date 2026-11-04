@@ -75,7 +75,7 @@ export const VisitorsPage = () => {
           <input
             type="text"
             placeholder="Search visitor name, phone, company..."
-            className="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
+            className="w-full pl-10 pr-4 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -83,16 +83,16 @@ export const VisitorsPage = () => {
 
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <select
-            className="px-3.5 py-2 text-xs font-semibold bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none text-slate-700"
+            className="px-3.5 py-2 text-xs font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none text-slate-900 cursor-pointer"
             value={status}
             onChange={(e) => setStatus(e.target.value)}
           >
-            <option value="">All Statuses</option>
-            <option value="checked_in">Inside Building</option>
-            <option value="checked_out">Checked Out</option>
-            <option value="pending">Pending Approval</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
+            <option value="" className="text-slate-900 bg-white">All Statuses</option>
+            <option value="checked_in" className="text-slate-900 bg-white">Inside Building</option>
+            <option value="checked_out" className="text-slate-900 bg-white">Checked Out</option>
+            <option value="pending" className="text-slate-900 bg-white">Pending Approval</option>
+            <option value="approved" className="text-slate-900 bg-white">Approved</option>
+            <option value="rejected" className="text-slate-900 bg-white">Rejected</option>
           </select>
         </div>
       </div>

@@ -4,8 +4,24 @@
 
 @layer base {
   body {
-    @apply min-h-screen bg-[#08090C] text-slate-100 antialiased;
+    @apply min-h-screen bg-[#08090C] text-slate-900 antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Form controls text and background visibility safeguards */
+  input, select, textarea {
+    color: #0f172a;
+  }
+
+  input::placeholder, textarea::placeholder {
+    color: #94a3b8;
+    opacity: 1;
+  }
+
+  /* Browser native dropdown options */
+  select option {
+    color: #0f172a !important;
+    background-color: #ffffff !important;
   }
 }
 

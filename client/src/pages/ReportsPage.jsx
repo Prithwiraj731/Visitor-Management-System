@@ -69,35 +69,35 @@ export const ReportsPage = () => {
       <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm mb-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">From Date</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1">From Date</label>
             <input
               type="date"
-              className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+              className="w-full px-3 py-2 text-xs text-slate-900 font-medium bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">To Date</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1">To Date</label>
             <input
               type="date"
-              className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+              className="w-full px-3 py-2 text-xs text-slate-900 font-medium bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Department</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1">Department</label>
             <select
-              className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+              className="w-full px-3 py-2 text-xs text-slate-900 font-medium bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none cursor-pointer"
               value={departmentId}
               onChange={(e) => setDepartmentId(e.target.value)}
             >
-              <option value="">All Departments</option>
+              <option value="" className="text-slate-900 bg-white">All Departments</option>
               {departments.map((d) => (
-                <option key={d.id} value={d.id}>
+                <option key={d.id} value={d.id} className="text-slate-900 bg-white">
                   {d.name}
                 </option>
               ))}
@@ -105,17 +105,17 @@ export const ReportsPage = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Status</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1">Status</label>
             <select
-              className="w-full px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+              className="w-full px-3 py-2 text-xs text-slate-900 font-medium bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none cursor-pointer"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
             >
-              <option value="">All Statuses</option>
-              <option value="checked_in">Inside Building</option>
-              <option value="checked_out">Checked Out</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
+              <option value="" className="text-slate-900 bg-white">All Statuses</option>
+              <option value="checked_in" className="text-slate-900 bg-white">Inside Building</option>
+              <option value="checked_out" className="text-slate-900 bg-white">Checked Out</option>
+              <option value="pending" className="text-slate-900 bg-white">Pending</option>
+              <option value="approved" className="text-slate-900 bg-white">Approved</option>
             </select>
           </div>
         </div>

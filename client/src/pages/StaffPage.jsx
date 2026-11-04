@@ -139,12 +139,12 @@ export const StaffPage = () => {
       >
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Full Name *</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1">Full Name *</label>
             <input
               type="text"
               required
               placeholder="e.g. Johnathan Vance"
-              className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+              className="w-full px-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none"
               value={formData.fullName}
               onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
             />
@@ -152,23 +152,23 @@ export const StaffPage = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Email *</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1">Email *</label>
               <input
                 type="email"
                 required
                 placeholder="user@vms.local"
-                className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                className="w-full px-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Password *</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1">Password *</label>
               <input
                 type="password"
                 required
                 placeholder="TemporaryPassword123!"
-                className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                className="w-full px-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
@@ -177,28 +177,28 @@ export const StaffPage = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Role *</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1">Role *</label>
               <select
-                className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                className="w-full px-3 py-2 text-sm text-slate-900 font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none cursor-pointer"
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
               >
-                <option value="host">Employee / Host</option>
-                <option value="guard">Security Guard</option>
-                <option value="admin">Administrator</option>
+                <option value="host" className="text-slate-900 bg-white">Employee / Host</option>
+                <option value="guard" className="text-slate-900 bg-white">Security Guard</option>
+                <option value="admin" className="text-slate-900 bg-white">Administrator</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Department</label>
+              <label className="block text-xs font-bold text-slate-800 mb-1">Department</label>
               <select
-                className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+                className="w-full px-3 py-2 text-sm text-slate-900 font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none cursor-pointer"
                 value={formData.departmentId}
                 onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
               >
-                <option value="">None / Facility Wide</option>
+                <option value="" className="text-slate-900 bg-white">None / Facility Wide</option>
                 {departments.map((d) => (
-                  <option key={d.id} value={d.id}>
+                  <option key={d.id} value={d.id} className="text-slate-900 bg-white">
                     {d.name}
                   </option>
                 ))}
@@ -207,11 +207,11 @@ export const StaffPage = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1">Phone Number</label>
             <input
               type="tel"
               placeholder="+1-555-0144"
-              className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none"
+              className="w-full px-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             />

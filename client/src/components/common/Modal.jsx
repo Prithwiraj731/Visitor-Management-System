@@ -28,7 +28,7 @@ export const Modal = ({ isOpen, onClose, title, subtitle, children, maxWidth = '
 
       {/* Dialog */}
       <div
-        className={`relative w-full ${maxWidth} bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all z-10`}
+        className={`relative w-full ${maxWidth} bg-white text-slate-900 rounded-2xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all z-10`}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">

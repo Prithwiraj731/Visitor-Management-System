@@ -97,16 +97,16 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Full Name */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-bold text-slate-800 mb-1">
               Visitor Full Name <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
-              <User className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <User className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
               <input
                 type="text"
                 required
                 placeholder="e.g. Alex Mercer"
-                className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
+                className="w-full pl-9 pr-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
               />
@@ -115,16 +115,16 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
 
           {/* Phone */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-bold text-slate-800 mb-1">
               Phone Number <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
-              <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
               <input
                 type="tel"
                 required
                 placeholder="+1-555-0123"
-                className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
+                className="w-full pl-9 pr-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
@@ -133,13 +133,13 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
 
           {/* Email */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1">Email Address</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
               <input
                 type="email"
                 placeholder="alex.m@company.com"
-                className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
+                className="w-full pl-9 pr-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
@@ -148,13 +148,13 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
 
           {/* Company */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Company / Organization</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1">Company / Organization</label>
             <div className="relative">
-              <Building className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <Building className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
               <input
                 type="text"
                 placeholder="e.g. GenTek Dynamics"
-                className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
+                className="w-full pl-9 pr-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
                 value={formData.company}
                 onChange={(e) => setFormData({ ...formData, company: e.target.value })}
               />
@@ -163,18 +163,18 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
 
           {/* Host Selection */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-bold text-slate-800 mb-1">
               Host Employee to Visit <span className="text-rose-500">*</span>
             </label>
             <select
               required
-              className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
+              className="w-full px-3 py-2 text-sm text-slate-900 font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors cursor-pointer"
               value={formData.hostId}
               onChange={(e) => setFormData({ ...formData, hostId: e.target.value })}
             >
-              <option value="" disabled>Select Employee</option>
+              <option value="" disabled className="text-slate-500 bg-white">Select Employee</option>
               {hosts.map((h) => (
-                <option key={h.id} value={h.id}>
+                <option key={h.id} value={h.id} className="text-slate-900 bg-white font-medium py-1">
                   {h.fullName} {h.department ? `(${h.department.name})` : ''}
                 </option>
               ))}
@@ -183,46 +183,46 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
 
           {/* Purpose of Visit */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-bold text-slate-800 mb-1">
               Purpose of Visit <span className="text-rose-500">*</span>
             </label>
             <select
-              className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
+              className="w-full px-3 py-2 text-sm text-slate-900 font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors cursor-pointer"
               value={formData.purpose}
               onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
             >
-              <option value="Business Meeting">Business Meeting</option>
-              <option value="Interview / Recruitment">Interview / Recruitment</option>
-              <option value="Vendor / Supplier Delivery">Vendor / Supplier Delivery</option>
-              <option value="Client Consultation">Client Consultation</option>
-              <option value="Contractor & Maintenance">Contractor & Maintenance</option>
-              <option value="Official Audit">Official Audit</option>
-              <option value="Personal Visit">Personal Visit</option>
+              <option value="Business Meeting" className="text-slate-900 bg-white font-medium py-1">Business Meeting</option>
+              <option value="Interview / Recruitment" className="text-slate-900 bg-white font-medium py-1">Interview / Recruitment</option>
+              <option value="Vendor / Supplier Delivery" className="text-slate-900 bg-white font-medium py-1">Vendor / Supplier Delivery</option>
+              <option value="Client Consultation" className="text-slate-900 bg-white font-medium py-1">Client Consultation</option>
+              <option value="Contractor & Maintenance" className="text-slate-900 bg-white font-medium py-1">Contractor & Maintenance</option>
+              <option value="Official Audit" className="text-slate-900 bg-white font-medium py-1">Official Audit</option>
+              <option value="Personal Visit" className="text-slate-900 bg-white font-medium py-1">Personal Visit</option>
             </select>
           </div>
 
           {/* ID Proof Type */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">ID Proof Type</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1">ID Proof Type</label>
             <select
-              className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
+              className="w-full px-3 py-2 text-sm text-slate-900 font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors cursor-pointer"
               value={formData.idProofType}
               onChange={(e) => setFormData({ ...formData, idProofType: e.target.value })}
             >
-              <option value="Driving License">Driving License</option>
-              <option value="National ID">National ID</option>
-              <option value="Passport">Passport</option>
-              <option value="Corporate Badge">Corporate Badge</option>
+              <option value="Driving License" className="text-slate-900 bg-white font-medium py-1">Driving License</option>
+              <option value="National ID" className="text-slate-900 bg-white font-medium py-1">National ID</option>
+              <option value="Passport" className="text-slate-900 bg-white font-medium py-1">Passport</option>
+              <option value="Corporate Badge" className="text-slate-900 bg-white font-medium py-1">Corporate Badge</option>
             </select>
           </div>
 
           {/* ID Proof Number */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">ID Proof Number</label>
+            <label className="block text-xs font-bold text-slate-800 mb-1">ID Proof Number</label>
             <input
               type="text"
               placeholder="e.g. DL-88912-US"
-              className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
+              className="w-full px-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
               value={formData.idProofNumber}
               onChange={(e) => setFormData({ ...formData, idProofNumber: e.target.value })}
             />
@@ -235,7 +235,7 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
           <textarea
             rows="2"
             placeholder="e.g. Carrying laptop, vehicle plate # XYZ-9012"
-            className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
+            className="w-full px-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
             value={formData.notes}
             onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
           />
