@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import { getDashboardStats, getTrends } from '../controllers/dashboardController.js';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, optionalAuthenticate } from '../middleware/auth.js';
 
 const router = Router();
 
-router.use(authenticate);
+// Publicly available live stats for landing page & headcount dashboard
+router.get('/stats', optionalAuthenticate, getDashboardStats);
 
-router.get('/stats', getDashboardStats);
-router.get('/trends', getTrends);
+// Trends require authenticated staff access
+router.get('/trends', authenticate, getTrends);
 
 export default router;
-

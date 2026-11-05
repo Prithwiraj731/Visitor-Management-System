@@ -10,7 +10,7 @@ export const getDashboardStats = async (req, res, next) => {
     todayEnd.setHours(23, 59, 59, 999);
 
     // Filter by role if host
-    const baseWhere = req.user.role === 'host' ? { hostId: req.user.id } : {};
+    const baseWhere = req.user?.role === 'host' ? { hostId: req.user.id } : {};
 
     const [
       totalToday,

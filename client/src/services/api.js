@@ -40,7 +40,12 @@ api.interceptors.response.use(
       } catch (refreshError) {
         localStorage.removeItem('vms_access_token');
         localStorage.removeItem('vms_user');
-        window.location.href = '/login';
+
+        // Only redirect to login if currently on a protected route
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/' && currentPath !== '/login' && currentPath !== '/supabase-test') {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
