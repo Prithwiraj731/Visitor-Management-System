@@ -1,5 +1,5 @@
-/* ── Fonts: keep this @import at the very TOP of index.css (above @tailwind) ── */
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Geist:wght@400;500;600&display=swap');
+/* ── 1. Fonts: Archivo variable font ── */
+@import url('https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,7 +7,7 @@
 
 @layer base {
   body {
-    @apply min-h-screen bg-[#070A11] text-slate-100 antialiased;
+    @apply min-h-screen bg-[#07090F] text-white antialiased;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
@@ -35,7 +35,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #070A11;
+  background: #07090F;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -47,213 +47,67 @@
   background: #2d3548;
 }
 
-/* ───────────────────────── VMS Typography & Themes ───────────────────────── */
+/* ───────────────────────── VMS Typography & Layout ───────────────────────── */
 
+.vms-page {
+  font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  font-stretch: 100%;
+}
+
+/* Display type: Archivo at its widest, heaviest setting — the whole personality of the page */
 .vms-page .font-display {
-  font-family: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
-  font-optical-sizing: auto;
-}
-.vms-page.font-body, .vms-page {
-  font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
-}
-
-/* Ambient backdrop: warm signal light top-left, cool ice light top-right, emerald floor glow */
-.vms-mesh {
-  background:
-    radial-gradient(60% 55% at 12% 0%, rgba(245,158,11,.16), transparent 70%),
-    radial-gradient(50% 50% at 92% 8%, rgba(56,189,248,.13), transparent 70%),
-    radial-gradient(45% 40% at 60% 100%, rgba(16,185,129,.07), transparent 70%);
-  animation: vms-drift 22s ease-in-out infinite alternate;
+  font-family: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  font-stretch: 125%;
+  font-weight: 800;
+  letter-spacing: -0.025em;
 }
 
-.vms-grain {
-  opacity: .5;
-  background-image: radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px);
-  background-size: 28px 28px;
-  mask-image: linear-gradient(to bottom, #000 0%, transparent 70%);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 70%);
-}
+/* Chamfered corners (flat geometry, no radius) */
+.vms-chamfer    { clip-path: polygon(0 0, calc(100% - 28px) 0, 100% 28px, 100% 100%, 28px 100%, 0 calc(100% - 28px)); }
+.vms-chamfer-lg { clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 40px, 100% 100%, 40px 100%, 0 calc(100% - 40px)); }
+.vms-chamfer-sm { clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
 
-/* Glass */
-.vms-glass {
-  background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.025));
-  border: 1px solid rgba(255,255,255,.1);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 24px 60px -24px rgba(0,0,0,.7);
-  -webkit-backdrop-filter: blur(24px) saturate(140%);
-  backdrop-filter: blur(24px) saturate(140%);
-}
+/* Align the hero's left column with the 72rem content container */
+.vms-gutter-l { padding-left: max(1.5rem, calc((100vw - 72rem) / 2 + 1.5rem)); }
+@media (max-width: 1023px) { .vms-gutter-l { padding-left: 1.25rem; } }
 
-.vms-glass-strong {
-  background: linear-gradient(160deg, rgba(255,255,255,.1), rgba(255,255,255,.03) 60%);
-  border: 1px solid rgba(255,255,255,.12);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 30px 80px -30px rgba(0,0,0,.8);
-  -webkit-backdrop-filter: blur(28px) saturate(150%);
-  backdrop-filter: blur(28px) saturate(150%);
-}
+/* Solid colour plane behind the badge */
+.vms-plane { transition: background-color .55s cubic-bezier(.2,.8,.2,1); }
 
-/* Buttons */
-.vms-btn-primary, .vms-btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: .5rem;
-  border-radius: 9999px;
-  font-weight: 600;
-  font-size: .875rem;
-  line-height: 1.25rem;
-  padding: .55rem 1.1rem;
-  transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
-  cursor: pointer;
+/* Buttons — flat fills only */
+.vms-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+  font-weight: 700; font-size: .9375rem; line-height: 1.25rem; padding: .65rem 1.2rem;
+  cursor: pointer; transition: transform .15s ease, background-color .2s ease, color .2s ease;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
 }
+.vms-btn:active { transform: translateY(1px); }
+.vms-btn:focus-visible { outline: 2px solid #fff; outline-offset: -3px; }
+.vms-btn-amber { background: #F59E0B; color: #07090F; }
+.vms-btn-amber:hover { background: #FBBF24; }
+.vms-btn-line { background: #1A2233; color: #fff; }
+.vms-btn-line:hover { background: #26304A; }
 
-.vms-btn-primary {
-  color: #1a1203;
-  background: linear-gradient(180deg, #FBBF24, #F59E0B);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 10px 30px -10px rgba(245,158,11,.7);
-}
+/* Badge swings gently from its lanyard */
+.vms-swing { transform-origin: top center; animation: vms-swing 7s ease-in-out infinite alternate; }
 
-.vms-btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 14px 36px -10px rgba(245,158,11,.85);
-}
+/* Scan simulation: one flat bar sweeping top to bottom */
+.vms-scan { top: 0; animation: vms-scan 1.6s cubic-bezier(.45,0,.55,1) 2; }
+.vms-toast { animation: vms-toast-in .35s cubic-bezier(.2,.9,.3,1) both; }
 
-.vms-btn-ghost {
-  color: #fff;
-  background: rgba(255,255,255,.07);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.12);
-}
+/* Role panel content + live dot */
+.vms-panel-in { animation: vms-panel-in .45s cubic-bezier(.2,.8,.2,1) both; }
+.vms-pulse::after { content: ''; position: absolute; inset: 0; background: inherit; animation: vms-ping 1.9s cubic-bezier(0,0,.2,1) infinite; }
 
-.vms-btn-ghost:hover:not(:disabled) {
-  background: rgba(255,255,255,.12);
-}
-
-.vms-btn-primary:active, .vms-btn-ghost:active {
-  transform: translateY(0) scale(.98);
-}
-
-.vms-btn-primary:focus-visible, .vms-btn-ghost:focus-visible {
-  outline: 2px solid #FBBF24;
-  outline-offset: 3px;
-}
-
-/* Smart badge */
-.vms-badge {
-  background:
-    radial-gradient(120% 70% at 100% 0%, color-mix(in srgb, var(--accent) 24%, transparent), transparent 60%),
-    linear-gradient(165deg, #151B28, #0C111B 70%);
-  border: 1px solid rgba(255,255,255,.14);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.2),
-    0 0 0 1px color-mix(in srgb, var(--accent) 22%, transparent),
-    0 40px 90px -30px color-mix(in srgb, var(--accent) 55%, #000),
-    0 20px 40px -20px rgba(0,0,0,.9);
-  transition: box-shadow .5s ease, transform .3s ease-out;
-}
-
-.vms-badge-sheen {
-  background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.08) 48%, transparent 60%);
-  background-size: 250% 100%;
-  animation: vms-sheen 7s ease-in-out infinite;
-}
-
-.vms-halo {
-  background: radial-gradient(closest-side, color-mix(in srgb, var(--halo) 22%, transparent), transparent);
-  filter: blur(30px);
-  transition: background .6s ease;
-}
-
-.vms-levitate {
-  animation: vms-levitate 6s ease-in-out infinite;
-  transform-origin: top center;
-}
-
-/* Scan simulation */
-.vms-scanline {
-  top: 0;
-  background: linear-gradient(to bottom, transparent, rgba(16,185,129,.35) 70%, rgba(110,231,183,.9) 98%, transparent);
-  animation: vms-scan 1.6s cubic-bezier(.45,0,.55,1) 2;
-}
-
-.vms-toast {
-  animation: vms-toast-in .4s cubic-bezier(.2,.9,.3,1.2) both;
-}
-
-/* Role panel + live feed */
-.vms-panel-in {
-  animation: vms-panel-in .45s cubic-bezier(.2,.8,.2,1) both;
-}
-
-.vms-row:first-child {
-  animation: vms-row-in .6s ease both;
-}
-
-/* Live dot */
-.vms-pulse::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: inherit;
-  animation: vms-ping 1.8s cubic-bezier(0,0,.2,1) infinite;
-}
-
-/* Emergency band */
-.vms-alert {
-  background:
-    radial-gradient(70% 90% at 0% 0%, rgba(245,158,11,.2), transparent 65%),
-    linear-gradient(160deg, #1A1407, #0E0F13 55%);
-  border: 1px solid rgba(245,158,11,.35);
-  box-shadow: inset 0 1px 0 rgba(251,191,36,.25), 0 40px 100px -40px rgba(245,158,11,.4);
-}
-
-/* Keyframes */
-@keyframes vms-levitate {
-  0%,100% { transform: translateY(0) rotate(-.6deg); }
-  50% { transform: translateY(-14px) rotate(.6deg); }
-}
-
-@keyframes vms-sheen {
-  0%,100% { background-position: 120% 0; }
-  50% { background-position: -20% 0; }
-}
-
-@keyframes vms-scan {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(520px); }
-}
-
-@keyframes vms-toast-in {
-  from { opacity: 0; transform: translateY(16px) scale(.96); }
-  to { opacity: 1; transform: none; }
-}
-
-@keyframes vms-panel-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: none; }
-}
-
-@keyframes vms-row-in {
-  from { opacity: 0; transform: translateX(-8px); }
-  to { opacity: 1; transform: none; }
-}
-
-@keyframes vms-ping {
-  75%, 100% { transform: scale(2.6); opacity: 0; }
-}
-
-@keyframes vms-drift {
-  from { transform: translate3d(0,0,0) scale(1); }
-  to { transform: translate3d(-2%,2%,0) scale(1.06); }
-}
+@keyframes vms-swing { from { transform: rotate(-1.6deg); } to { transform: rotate(1.6deg); } }
+@keyframes vms-scan { 0% { top: 0; } 100% { top: calc(100% - 3px); } }
+@keyframes vms-toast-in { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes vms-panel-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes vms-ping { 75%, 100% { transform: scale(2.4); opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .vms-mesh, .vms-levitate, .vms-badge-sheen, .vms-scanline, .vms-pulse::after,
-  .vms-panel-in, .vms-row:first-child, .vms-toast { animation: none !important; }
-  .vms-badge { transition: none; }
-}
-
-@supports not (backdrop-filter: blur(1px)) {
-  .vms-glass, .vms-glass-strong { background: rgba(17,22,33,.92); }
+  .vms-swing, .vms-scan, .vms-toast, .vms-panel-in, .vms-pulse::after { animation: none !important; }
+  .vms-plane { transition: none; }
 }
 
 /* Print styling for Visitor Badge */
