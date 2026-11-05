@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { userService, visitService } from '../../services/api';
-import { User, Phone, Mail, Building, FileText, CheckCircle2 } from 'lucide-react';
+import { User, Phone, Mail, Building, CheckCircle2 } from 'lucide-react';
 
 export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
   const [hosts, setHosts] = useState([]);
@@ -89,7 +89,7 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="p-3 bg-rose-50 border border-rose-200 text-rose-700 text-xs rounded-xl">
+          <div className="p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold vms-chamfer-sm">
             {error}
           </div>
         )}
@@ -97,16 +97,16 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Full Name */}
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1">
-              Visitor Full Name <span className="text-rose-500">*</span>
+            <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">
+              Visitor Full Name <span className="text-amber-400">*</span>
             </label>
             <div className="relative">
-              <User className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+              <User className="w-4 h-4 text-white/40 absolute left-3.5 top-3" />
               <input
                 type="text"
                 required
-                placeholder="e.g. Alex Mercer"
-                className="w-full pl-9 pr-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
+                placeholder="e.g. Alex Vance"
+                className="w-full pl-10 pr-3 py-2.5 text-sm text-white placeholder-white/30 bg-[#07090F] border border-white/15 vms-chamfer-sm focus:border-amber-400 focus:outline-none transition-colors"
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
               />
@@ -115,16 +115,16 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
 
           {/* Phone */}
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1">
-              Phone Number <span className="text-rose-500">*</span>
+            <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">
+              Contact Phone <span className="text-amber-400">*</span>
             </label>
             <div className="relative">
-              <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+              <Phone className="w-4 h-4 text-white/40 absolute left-3.5 top-3" />
               <input
                 type="tel"
                 required
-                placeholder="+1-555-0123"
-                className="w-full pl-9 pr-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
+                placeholder="+1-555-0199"
+                className="w-full pl-10 pr-3 py-2.5 text-sm text-white placeholder-white/30 bg-[#07090F] border border-white/15 vms-chamfer-sm focus:border-amber-400 focus:outline-none transition-colors"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
@@ -133,13 +133,13 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
 
           {/* Email */}
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1">Email Address</label>
+            <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">Email Address</label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+              <Mail className="w-4 h-4 text-white/40 absolute left-3.5 top-3" />
               <input
                 type="email"
-                placeholder="alex.m@company.com"
-                className="w-full pl-9 pr-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
+                placeholder="alex@company.com"
+                className="w-full pl-10 pr-3 py-2.5 text-sm text-white placeholder-white/30 bg-[#07090F] border border-white/15 vms-chamfer-sm focus:border-amber-400 focus:outline-none transition-colors"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
@@ -148,120 +148,77 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
 
           {/* Company */}
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1">Company / Organization</label>
+            <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">Company / Agency</label>
             <div className="relative">
-              <Building className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+              <Building className="w-4 h-4 text-white/40 absolute left-3.5 top-3" />
               <input
                 type="text"
-                placeholder="e.g. GenTek Dynamics"
-                className="w-full pl-9 pr-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
+                placeholder="Black Mesa Research"
+                className="w-full pl-10 pr-3 py-2.5 text-sm text-white placeholder-white/30 bg-[#07090F] border border-white/15 vms-chamfer-sm focus:border-amber-400 focus:outline-none transition-colors"
                 value={formData.company}
                 onChange={(e) => setFormData({ ...formData, company: e.target.value })}
               />
             </div>
           </div>
 
-          {/* Host Selection */}
+          {/* Host */}
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1">
-              Host Employee to Visit <span className="text-rose-500">*</span>
+            <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">
+              Host Employee <span className="text-amber-400">*</span>
             </label>
             <select
               required
-              className="w-full px-3 py-2 text-sm text-slate-900 font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors cursor-pointer"
+              className="w-full px-3.5 py-2.5 text-sm text-white bg-[#07090F] border border-white/15 vms-chamfer-sm focus:border-amber-400 focus:outline-none transition-colors cursor-pointer"
               value={formData.hostId}
               onChange={(e) => setFormData({ ...formData, hostId: e.target.value })}
             >
-              <option value="" disabled className="text-slate-500 bg-white">Select Employee</option>
               {hosts.map((h) => (
-                <option key={h.id} value={h.id} className="text-slate-900 bg-white font-medium py-1">
-                  {h.fullName} {h.department ? `(${h.department.name})` : ''}
+                <option key={h.id} value={h.id} className="text-slate-900 bg-white">
+                  {h.fullName} ({h.department?.name || 'Staff'})
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Purpose of Visit */}
+          {/* Purpose */}
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1">
-              Purpose of Visit <span className="text-rose-500">*</span>
+            <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">
+              Purpose of Visit <span className="text-amber-400">*</span>
             </label>
             <select
-              className="w-full px-3 py-2 text-sm text-slate-900 font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors cursor-pointer"
+              className="w-full px-3.5 py-2.5 text-sm text-white bg-[#07090F] border border-white/15 vms-chamfer-sm focus:border-amber-400 focus:outline-none transition-colors cursor-pointer"
               value={formData.purpose}
               onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
             >
-              <option value="Business Meeting" className="text-slate-900 bg-white font-medium py-1">Business Meeting</option>
-              <option value="Interview / Recruitment" className="text-slate-900 bg-white font-medium py-1">Interview / Recruitment</option>
-              <option value="Vendor / Supplier Delivery" className="text-slate-900 bg-white font-medium py-1">Vendor / Supplier Delivery</option>
-              <option value="Client Consultation" className="text-slate-900 bg-white font-medium py-1">Client Consultation</option>
-              <option value="Contractor & Maintenance" className="text-slate-900 bg-white font-medium py-1">Contractor & Maintenance</option>
-              <option value="Official Audit" className="text-slate-900 bg-white font-medium py-1">Official Audit</option>
-              <option value="Personal Visit" className="text-slate-900 bg-white font-medium py-1">Personal Visit</option>
+              <option value="Business Meeting" className="text-slate-900 bg-white">Business Meeting</option>
+              <option value="Client Consultation" className="text-slate-900 bg-white">Client Consultation</option>
+              <option value="Vendor / Delivery" className="text-slate-900 bg-white">Vendor / Delivery</option>
+              <option value="Technical Maintenance" className="text-slate-900 bg-white">Technical Maintenance</option>
+              <option value="Job Interview" className="text-slate-900 bg-white">Job Interview</option>
+              <option value="Facility Tour" className="text-slate-900 bg-white">Facility Tour</option>
             </select>
           </div>
+        </div>
 
-          {/* ID Proof Type */}
-          <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1">ID Proof Type</label>
-            <select
-              className="w-full px-3 py-2 text-sm text-slate-900 font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors cursor-pointer"
-              value={formData.idProofType}
-              onChange={(e) => setFormData({ ...formData, idProofType: e.target.value })}
-            >
-              <option value="Driving License" className="text-slate-900 bg-white font-medium py-1">Driving License</option>
-              <option value="National ID" className="text-slate-900 bg-white font-medium py-1">National ID</option>
-              <option value="Passport" className="text-slate-900 bg-white font-medium py-1">Passport</option>
-              <option value="Corporate Badge" className="text-slate-900 bg-white font-medium py-1">Corporate Badge</option>
-            </select>
-          </div>
-
-          {/* ID Proof Number */}
-          <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1">ID Proof Number</label>
+        {/* Checkbox: Auto Check-In */}
+        <div className="pt-2">
+          <label className="flex items-center gap-2 cursor-pointer text-xs text-white/80 font-medium">
             <input
-              type="text"
-              placeholder="e.g. DL-88912-US"
-              className="w-full px-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
-              value={formData.idProofNumber}
-              onChange={(e) => setFormData({ ...formData, idProofNumber: e.target.value })}
+              type="checkbox"
+              checked={formData.autoCheckIn}
+              onChange={(e) => setFormData({ ...formData, autoCheckIn: e.target.checked })}
+              className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
             />
-          </div>
-        </div>
-
-        {/* Notes */}
-        <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">Additional Notes / Belongings</label>
-          <textarea
-            rows="2"
-            placeholder="e.g. Carrying laptop, vehicle plate # XYZ-9012"
-            className="w-full px-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-500 focus:outline-none transition-colors"
-            value={formData.notes}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-          />
-        </div>
-
-        {/* Check-In Mode Toggle */}
-        <div className="flex items-center gap-2 p-3 bg-brand-50/60 border border-brand-100 rounded-xl">
-          <input
-            type="checkbox"
-            id="autoCheckIn"
-            checked={formData.autoCheckIn}
-            onChange={(e) => setFormData({ ...formData, autoCheckIn: e.target.checked })}
-            className="w-4 h-4 text-brand-600 rounded border-slate-300 focus:ring-brand-500"
-          />
-          <label htmlFor="autoCheckIn" className="text-xs font-medium text-slate-700 cursor-pointer">
-            Immediate Gate Check-In (marks status as <span className="font-semibold text-emerald-700">Inside Building</span> and prints badge)
+            <span>Check-in visitor immediately (Mark status as Inside Building)</span>
           </label>
         </div>
 
-        {/* Footer Actions */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-          <Button type="button" variant="secondary" onClick={onClose}>
+        <div className="pt-5 flex justify-end gap-3 border-t border-white/10">
+          <Button variant="secondary" onClick={onClose} type="button">
             Cancel
           </Button>
-          <Button type="submit" loading={loading} icon={CheckCircle2}>
-            Register & Generate Badge
+          <Button variant="primary" type="submit" loading={loading} icon={CheckCircle2}>
+            Register & Issue Pass
           </Button>
         </div>
       </form>
@@ -269,3 +226,4 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
   );
 };
 
+export default QuickCheckInModal;

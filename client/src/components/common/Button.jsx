@@ -11,26 +11,26 @@ export const Button = ({
   className = '',
   ...props
 }) => {
-  const base = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-150 ease-out active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none select-none';
+  const base = 'vms-btn select-none disabled:opacity-50 disabled:pointer-events-none';
 
   const variants = {
-    primary: 'bg-brand-600 hover:bg-brand-700 text-white shadow-sm shadow-brand-500/20 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2',
-    secondary: 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm focus-visible:ring-2 focus-visible:ring-slate-400',
-    danger: 'bg-rose-600 hover:bg-rose-700 text-white shadow-sm shadow-rose-500/20 focus-visible:ring-2 focus-visible:ring-rose-500',
-    outline: 'border border-brand-200 text-brand-700 hover:bg-brand-50/60 focus-visible:ring-2 focus-visible:ring-brand-500',
-    ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
-    emergency: 'bg-red-600 hover:bg-red-700 text-white font-semibold shadow-md animate-pulse',
+    primary: 'vms-btn-amber',
+    secondary: 'vms-btn-line',
+    danger: 'bg-rose-600 hover:bg-rose-500 text-white',
+    outline: 'bg-transparent border border-white/20 text-white hover:bg-white/10',
+    ghost: 'text-white/70 hover:text-white hover:bg-white/[.08]',
+    emergency: 'bg-amber-500 text-[#07090F] font-bold animate-pulse',
   };
 
   const sizes = {
-    sm: 'text-xs px-2.5 py-1.5 gap-1.5',
-    md: 'text-sm px-3.5 py-2 gap-2',
-    lg: 'text-base px-5 py-2.5 gap-2.5',
+    sm: 'text-xs px-3 py-1.5 gap-1.5',
+    md: 'text-sm px-4 py-2 gap-2',
+    lg: 'text-base px-6 py-3 gap-2.5',
   };
 
   return (
     <button
-      className={`${base} ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`${base} ${variants[variant] || variants.primary} ${sizes[size] || sizes.md} ${className}`}
       disabled={disabled || loading}
       {...props}
     >
@@ -44,3 +44,4 @@ export const Button = ({
   );
 };
 
+export default Button;

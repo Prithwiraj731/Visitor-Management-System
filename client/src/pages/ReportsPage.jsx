@@ -3,7 +3,7 @@ import { PageWrapper } from '../components/layout/PageWrapper';
 import { reportService, departmentService } from '../services/api';
 import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
-import { Download, Calendar, Filter, FileSpreadsheet } from 'lucide-react';
+import { Download } from 'lucide-react';
 
 export const ReportsPage = () => {
   const [departments, setDepartments] = useState([]);
@@ -66,32 +66,32 @@ export const ReportsPage = () => {
       }
     >
       {/* Filters Card */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm mb-6">
+      <div className="bg-[#0C111B] p-6 vms-chamfer border border-white/10 mb-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1">From Date</label>
+            <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">From Date</label>
             <input
               type="date"
-              className="w-full px-3 py-2 text-xs text-slate-900 font-medium bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none"
+              className="w-full px-3.5 py-2 text-xs text-white bg-[#07090F] border border-white/15 vms-chamfer-sm focus:border-amber-400 focus:outline-none"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1">To Date</label>
+            <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">To Date</label>
             <input
               type="date"
-              className="w-full px-3 py-2 text-xs text-slate-900 font-medium bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none"
+              className="w-full px-3.5 py-2 text-xs text-white bg-[#07090F] border border-white/15 vms-chamfer-sm focus:border-amber-400 focus:outline-none"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1">Department</label>
+            <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">Department</label>
             <select
-              className="w-full px-3 py-2 text-xs text-slate-900 font-medium bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none cursor-pointer"
+              className="w-full px-3.5 py-2 text-xs text-white bg-[#07090F] border border-white/15 vms-chamfer-sm focus:border-amber-400 focus:outline-none cursor-pointer"
               value={departmentId}
               onChange={(e) => setDepartmentId(e.target.value)}
             >
@@ -105,66 +105,89 @@ export const ReportsPage = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1">Status</label>
+            <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">Filter Status</label>
             <select
-              className="w-full px-3 py-2 text-xs text-slate-900 font-medium bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none cursor-pointer"
+              className="w-full px-3.5 py-2 text-xs text-white bg-[#07090F] border border-white/15 vms-chamfer-sm focus:border-amber-400 focus:outline-none cursor-pointer"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
             >
               <option value="" className="text-slate-900 bg-white">All Statuses</option>
               <option value="checked_in" className="text-slate-900 bg-white">Inside Building</option>
               <option value="checked_out" className="text-slate-900 bg-white">Checked Out</option>
-              <option value="pending" className="text-slate-900 bg-white">Pending</option>
+              <option value="pending" className="text-slate-900 bg-white">Pending Approval</option>
               <option value="approved" className="text-slate-900 bg-white">Approved</option>
+              <option value="rejected" className="text-slate-900 bg-white">Rejected</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* Report Records Table */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
-          <span>Found {reportData.length} audit records</span>
-          <span className="flex items-center gap-1.5 text-slate-700 font-semibold">
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" /> Ready for Export
+      {/* Report Summary Data Table */}
+      <div className="bg-[#0C111B] vms-chamfer border border-white/10 overflow-hidden">
+        <div className="p-5 border-b border-white/10 bg-[#0E1420] flex items-center justify-between text-xs">
+          <span className="font-display text-sm font-bold text-white">Aggregated Audit Trail</span>
+          <span className="text-white/60">
+            Total Matching Records: <strong className="text-amber-400">{reportData.length}</strong>
           </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50/80 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
+            <thead className="bg-[#07090F] text-white/50 uppercase tracking-wider font-bold border-b border-white/10">
               <tr>
-                <th className="px-5 py-3.5">Badge Serial</th>
                 <th className="px-5 py-3.5">Visitor</th>
-                <th className="px-5 py-3.5">Company</th>
-                <th className="px-5 py-3.5">Host Employee</th>
+                <th className="px-5 py-3.5">Organization</th>
+                <th className="px-5 py-3.5">Host</th>
                 <th className="px-5 py-3.5">Department</th>
-                <th className="px-5 py-3.5">Purpose</th>
-                <th className="px-5 py-3.5">Check In</th>
-                <th className="px-5 py-3.5">Check Out</th>
-                <th className="px-5 py-3.5">Status</th>
+                <th className="px-5 py-3.5">Arrival Timestamp</th>
+                <th className="px-5 py-3.5">Exit Timestamp</th>
+                <th className="px-5 py-3.5">Pass Serial</th>
+                <th className="px-5 py-3.5">Final Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {reportData.map((v) => (
-                <tr key={v.id} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="px-5 py-3.5 font-mono font-semibold text-slate-700">{v.badgeNumber || 'N/A'}</td>
-                  <td className="px-5 py-3.5 font-medium text-slate-900">{v.visitor?.fullName}</td>
-                  <td className="px-5 py-3.5 text-slate-600">{v.visitor?.company || 'Personal'}</td>
-                  <td className="px-5 py-3.5 text-slate-800 font-medium">{v.host?.fullName}</td>
-                  <td className="px-5 py-3.5 text-slate-600">{v.department?.name || 'General Access'}</td>
-                  <td className="px-5 py-3.5 text-slate-600 truncate max-w-xs">{v.purpose}</td>
-                  <td className="px-5 py-3.5 text-slate-500 font-mono">
-                    {v.checkInTime ? new Date(v.checkInTime).toLocaleString() : 'N/A'}
-                  </td>
-                  <td className="px-5 py-3.5 text-slate-500 font-mono">
-                    {v.checkOutTime ? new Date(v.checkOutTime).toLocaleString() : 'N/A'}
-                  </td>
-                  <td className="px-5 py-3.5">
-                    <Badge status={v.status} />
+            <tbody className="divide-y divide-white/[.06]">
+              {loading ? (
+                <tr>
+                  <td colSpan="8" className="text-center py-12 text-white/40">
+                    Compiling compliance audit...
                   </td>
                 </tr>
-              ))}
+              ) : reportData.length > 0 ? (
+                reportData.map((v) => (
+                  <tr key={v.id} className="hover:bg-[#121A29] transition-colors">
+                    <td className="px-5 py-4 font-bold text-white text-sm">
+                      {v.visitor?.fullName}
+                    </td>
+                    <td className="px-5 py-4 text-white/70 font-medium">
+                      {v.visitor?.company || 'Personal'}
+                    </td>
+                    <td className="px-5 py-4 font-semibold text-white/90">
+                      {v.host?.fullName}
+                    </td>
+                    <td className="px-5 py-4 text-white/60">
+                      {v.department?.name || 'General Area'}
+                    </td>
+                    <td className="px-5 py-4 text-white/60 font-mono">
+                      {v.checkInTime ? new Date(v.checkInTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : '—'}
+                    </td>
+                    <td className="px-5 py-4 text-white/60 font-mono">
+                      {v.checkOutTime ? new Date(v.checkOutTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) : '—'}
+                    </td>
+                    <td className="px-5 py-4 font-mono font-bold text-amber-400">
+                      {v.badgeNumber || 'N/A'}
+                    </td>
+                    <td className="px-5 py-4">
+                      <Badge status={v.status} />
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="8" className="text-center py-12 text-white/40 text-xs">
+                    No visitor records found matching selected audit range
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -172,3 +195,5 @@ export const ReportsPage = () => {
     </PageWrapper>
   );
 };
+
+export default ReportsPage;

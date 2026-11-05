@@ -3,14 +3,12 @@ import { PageWrapper } from '../components/layout/PageWrapper';
 import { visitService } from '../services/api';
 import { Button } from '../components/common/Button';
 import {
-  AlertTriangle,
   Printer,
   Phone,
-  Building,
-  User,
   ShieldAlert,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  Siren
 } from 'lucide-react';
 
 export const EvacuationPage = () => {
@@ -47,68 +45,68 @@ export const EvacuationPage = () => {
   return (
     <PageWrapper
       title="Emergency Evacuation Manifest"
-      subtitle="Life safety emergency headcount roster of all non-employees currently inside premises"
+      subtitle="Life safety emergency headcount roster of all non-employees currently inside premises (OSHA 29 CFR 1910.38)"
       action={
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <Button variant="secondary" icon={Clock} onClick={loadManifest}>
-            Refresh Live Headcount
+            Refresh Live
           </Button>
-          <Button variant="primary" icon={Printer} onClick={handlePrint} className="bg-rose-600 hover:bg-rose-700">
+          <Button variant="primary" icon={Printer} onClick={handlePrint} className="bg-amber-500 hover:bg-amber-400 text-[#07090F] font-bold">
             Print Crisis Roster
           </Button>
         </div>
       }
     >
-      {/* High-Alert Crimson Banner */}
-      <div className="bg-gradient-to-r from-rose-600 to-red-700 text-white p-6 rounded-2xl shadow-lg mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center shrink-0">
-            <ShieldAlert className="w-8 h-8 text-white animate-bounce" />
+      {/* High-Impact Solid Amber Alert Plane (Matching Landing Page Safety Section) */}
+      <div className="bg-amber-500 text-[#07090F] p-8 vms-chamfer-lg shadow-2xl mb-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-5">
+          <div className="w-16 h-16 bg-[#07090F] text-amber-400 flex items-center justify-center shrink-0 vms-chamfer-sm">
+            <Siren className="w-9 h-9 animate-pulse" />
           </div>
           <div>
-            <span className="inline-block px-2.5 py-0.5 rounded-full bg-white/20 text-xs font-bold uppercase tracking-wider mb-1">
-              Active Security Roster
+            <span className="inline-block px-3 py-1 bg-[#07090F] text-amber-400 text-xs font-extrabold uppercase tracking-wider mb-2 vms-chamfer-sm">
+              OSHA Emergency Action Headcount
             </span>
-            <h2 className="text-2xl font-black tracking-tight">
+            <h2 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
               {totalInside} {totalInside === 1 ? 'PERSON' : 'PERSONS'} CURRENTLY ON PREMISES
             </h2>
-            <p className="text-xs text-rose-100 mt-0.5">
-              Verified checkpoint count as of {timestamp.toLocaleTimeString()}
+            <p className="text-sm font-semibold text-[#07090F]/80 mt-1">
+              Live verified checkpoint roster as of {timestamp.toLocaleTimeString('en-GB')}
             </p>
           </div>
         </div>
 
-        <div className="text-center sm:text-right">
-          <span className="block text-3xl font-black font-mono">{totalInside}</span>
-          <span className="text-xs text-rose-200 uppercase font-semibold">Accountability Roster</span>
+        <div className="bg-[#07090F] text-amber-400 p-6 text-center sm:text-right vms-chamfer-sm shrink-0 min-w-[160px]">
+          <span className="font-display block text-5xl font-extrabold tabular-nums leading-none">{totalInside}</span>
+          <span className="text-[11px] text-white/70 uppercase font-bold tracking-wider mt-1 block">Accountability Roster</span>
         </div>
       </div>
 
       {/* Manifest Table */}
-      <div id="printable-badge" className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-slate-100 bg-slate-50/60 flex items-center justify-between text-xs">
-          <span className="font-semibold text-slate-700">All Active Visitor Passes</span>
-          <span className="text-slate-500">Provide this list directly to Incident Commander / Fire Marshall</span>
+      <div id="printable-badge" className="bg-[#0C111B] vms-chamfer border border-white/10 overflow-hidden">
+        <div className="p-5 border-b border-white/10 bg-[#0E1420] flex items-center justify-between text-xs">
+          <span className="font-display text-sm font-bold text-white">Active Visitor Passes On Site</span>
+          <span className="text-amber-400 font-semibold">Provide directly to Incident Commander / Fire Marshall</span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-100 text-slate-700 uppercase tracking-wider font-bold border-b border-slate-200">
+            <thead className="bg-[#07090F] text-white/50 uppercase tracking-wider font-bold border-b border-white/10">
               <tr>
-                <th className="px-5 py-3">Visitor Name</th>
-                <th className="px-5 py-3">Phone (Click to Call)</th>
-                <th className="px-5 py-3">Company</th>
-                <th className="px-5 py-3">Host Employee & Contact</th>
-                <th className="px-5 py-3">Location Wing / Floor</th>
-                <th className="px-5 py-3">Entry Time</th>
-                <th className="px-5 py-3">Badge Serial</th>
+                <th className="px-5 py-3.5">Visitor Name</th>
+                <th className="px-5 py-3.5">Phone (Direct Line)</th>
+                <th className="px-5 py-3.5">Company</th>
+                <th className="px-5 py-3.5">Host Employee</th>
+                <th className="px-5 py-3.5">Wing / Location</th>
+                <th className="px-5 py-3.5">Entry Time</th>
+                <th className="px-5 py-3.5">Badge Serial</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-white/[.06]">
               {manifest.length > 0 ? (
                 manifest.map((v) => (
-                  <tr key={v.id} className="hover:bg-rose-50/30 transition-colors">
-                    <td className="px-5 py-4 font-bold text-slate-900 text-sm">
+                  <tr key={v.id} className="hover:bg-[#121A29] transition-colors">
+                    <td className="px-5 py-4 font-bold text-white text-sm">
                       {v.visitor?.fullName}
                     </td>
 
@@ -116,52 +114,52 @@ export const EvacuationPage = () => {
                       {v.visitor?.phone ? (
                         <a
                           href={`tel:${v.visitor.phone}`}
-                          className="inline-flex items-center gap-1.5 font-semibold text-brand-600 hover:text-brand-800 hover:underline"
+                          className="inline-flex items-center gap-1.5 font-bold text-amber-400 hover:text-amber-300 hover:underline"
                         >
                           <Phone className="w-3.5 h-3.5" />
                           {v.visitor.phone}
                         </a>
                       ) : (
-                        <span className="text-slate-400">None</span>
+                        <span className="text-white/40">None</span>
                       )}
                     </td>
 
-                    <td className="px-5 py-4 text-slate-700 font-medium">
+                    <td className="px-5 py-4 text-white/70 font-medium">
                       {v.visitor?.company || 'Personal'}
                     </td>
 
                     <td className="px-5 py-4">
-                      <div className="font-semibold text-slate-800">{v.host?.fullName}</div>
+                      <div className="font-semibold text-white/90">{v.host?.fullName}</div>
                       {v.host?.phone && (
                         <a
                           href={`tel:${v.host.phone}`}
-                          className="text-[11px] text-slate-500 hover:text-brand-600 flex items-center gap-1 mt-0.5"
+                          className="text-[11px] text-white/50 hover:text-amber-400 flex items-center gap-1 mt-0.5"
                         >
                           <Phone className="w-3 h-3" /> {v.host.phone}
                         </a>
                       )}
                     </td>
 
-                    <td className="px-5 py-4 font-medium text-slate-700">
+                    <td className="px-5 py-4 font-medium text-white/80">
                       <div className="font-semibold">{v.department?.name || 'General Area'}</div>
-                      <div className="text-[11px] text-slate-400">
+                      <div className="text-[11px] text-white/40">
                         {v.department?.building} — {v.department?.floor || 'Main'}
                       </div>
                     </td>
 
-                    <td className="px-5 py-4 text-slate-600 font-mono">
+                    <td className="px-5 py-4 text-white/60 font-mono">
                       {v.checkInTime ? new Date(v.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A'}
                     </td>
 
-                    <td className="px-5 py-4 font-mono font-bold text-slate-800">
+                    <td className="px-5 py-4 font-mono font-bold text-amber-400">
                       {v.badgeNumber}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="text-center py-12 text-slate-400 text-xs">
-                    <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
+                  <td colSpan="7" className="text-center py-14 text-white/50 text-sm">
+                    <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto mb-2" />
                     All visitors have departed. Facility is currently clear of external guests.
                   </td>
                 </tr>
@@ -174,3 +172,4 @@ export const EvacuationPage = () => {
   );
 };
 
+export default EvacuationPage;

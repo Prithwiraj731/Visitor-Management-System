@@ -9,7 +9,6 @@ import {
   AlertTriangle,
   UserCheck,
   LogOut,
-  Building,
   UserPlus,
   Globe
 } from 'lucide-react';
@@ -37,26 +36,26 @@ export const Sidebar = ({ mobileOpen, setMobileOpen, onOpenNewVisit }) => {
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#07090F] border-r border-white/10 text-white flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Brand Header */}
-        <Link to="/" className="h-16 flex items-center justify-between px-6 border-b border-slate-800 bg-slate-950/40 hover:bg-slate-900/60 transition-colors">
+        <Link to="/" className="h-[68px] flex items-center justify-between px-5 border-b border-white/10 bg-[#07090F] hover:bg-white/[.03] transition-colors">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
-              <Building className="w-5 h-5" />
-            </div>
+            <span className="vms-chamfer-sm grid h-9 w-9 place-items-center bg-amber-500 text-[#07090F]">
+              <ShieldCheck size={19} strokeWidth={2.4} />
+            </span>
             <div>
-              <span className="font-bold text-white tracking-tight text-base block leading-tight">VMS Portal</span>
-              <span className="text-[10px] text-brand-400 font-medium uppercase tracking-wider block">Enterprise Security</span>
+              <span className="font-display text-[15px] block leading-tight text-white">VMS Enterprise</span>
+              <span className="text-[10px] text-amber-400 font-semibold uppercase tracking-wider block">Access Control</span>
             </div>
           </div>
         </Link>
@@ -69,7 +68,7 @@ export const Sidebar = ({ mobileOpen, setMobileOpen, onOpenNewVisit }) => {
                 if (onOpenNewVisit) onOpenNewVisit();
                 setMobileOpen(false);
               }}
-              className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-medium text-sm shadow-md shadow-brand-600/20 transition-all active:scale-[0.98]"
+              className="vms-btn vms-btn-amber w-full justify-center text-sm py-2.5"
             >
               <UserPlus className="w-4 h-4" />
               <span>New Visitor Check-In</span>
@@ -78,9 +77,9 @@ export const Sidebar = ({ mobileOpen, setMobileOpen, onOpenNewVisit }) => {
         )}
 
         {/* Navigation Links */}
-        <div className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          <div className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-3 mb-2">
-            Main Navigation
+        <div className="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
+          <div className="text-[11px] font-bold text-white/40 uppercase tracking-wider px-3 mb-2">
+            Command Center
           </div>
           {filteredNav.map((item) => (
             <NavLink
@@ -88,12 +87,12 @@ export const Sidebar = ({ mobileOpen, setMobileOpen, onOpenNewVisit }) => {
               to={item.href}
               onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                `flex items-center gap-3 px-3.5 py-2.5 text-sm font-semibold transition-all ${
                   isActive
-                    ? 'bg-brand-600 text-white shadow-sm'
+                    ? 'bg-amber-500 text-[#07090F] vms-chamfer-sm font-bold shadow'
                     : item.danger
-                    ? 'text-rose-400 hover:bg-rose-950/40 hover:text-rose-300'
-                    : 'text-slate-400 hover:bg-slate-800/80 hover:text-slate-100'
+                    ? 'text-rose-400 hover:bg-rose-500/10 hover:text-rose-300'
+                    : 'text-white/70 hover:bg-white/[.06] hover:text-white'
                 }`
               }
             >
@@ -104,19 +103,21 @@ export const Sidebar = ({ mobileOpen, setMobileOpen, onOpenNewVisit }) => {
         </div>
 
         {/* Current User Card & Logout */}
-        <div className="p-3 border-t border-slate-800 bg-slate-950/50">
-          <div className="flex items-center gap-3 p-2 rounded-xl bg-slate-800/50">
-            <div className="w-9 h-9 rounded-lg bg-slate-700 flex items-center justify-center font-bold text-slate-200 uppercase text-sm shrink-0">
+        <div className="p-3 border-t border-white/10 bg-[#0C111B]">
+          <div className="flex items-center gap-3 p-2 bg-[#121A29] vms-chamfer-sm">
+            <div className="w-8 h-8 bg-amber-500 text-[#07090F] flex items-center justify-center font-display font-bold text-sm shrink-0">
               {user?.fullName?.charAt(0) || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-white truncate">{user?.fullName}</p>
-              <Badge status={user?.role} className="mt-0.5 text-[10px] px-1.5 py-0" />
+              <p className="text-xs font-bold text-white truncate">{user?.fullName}</p>
+              <span className="text-[10px] text-amber-400 uppercase font-semibold block truncate">
+                {user?.role?.replace('_', ' ')}
+              </span>
             </div>
             <button
               onClick={logout}
               title="Sign Out"
-              className="text-slate-400 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-700/50 transition-colors"
+              className="text-white/50 hover:text-rose-400 p-1.5 hover:bg-white/[.06] transition-colors"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -127,3 +128,4 @@ export const Sidebar = ({ mobileOpen, setMobileOpen, onOpenNewVisit }) => {
   );
 };
 
+export default Sidebar;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Building, Shield, Lock, Mail, ArrowRight, ArrowLeft, Terminal, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, ArrowRight, ArrowLeft, Terminal } from 'lucide-react';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -53,66 +53,61 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#08090C] text-slate-100 flex flex-col items-center justify-center p-4 relative antialiased selection:bg-amber-500 selection:text-black">
-      {/* Precision Blueprint Grid */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.035] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:3.5rem_3.5rem]" />
-
+    <div className="vms-page min-h-screen bg-[#07090F] text-white flex flex-col items-center justify-center p-4 relative antialiased selection:bg-amber-400 selection:text-[#07090F]">
       {/* Return to Landing Page */}
       <Link
         to="/"
-        className="absolute top-6 left-6 inline-flex items-center gap-2 text-xs font-mono font-bold text-slate-400 hover:text-white transition-colors bg-[#0E121A] px-3.5 py-2 rounded-md border border-white/[0.08]"
+        className="absolute top-6 left-6 inline-flex items-center gap-2 text-sm font-semibold text-white/70 hover:text-white transition-colors bg-[#0E1420] px-4 py-2 border border-white/10 vms-chamfer-sm"
       >
-        <ArrowLeft className="w-3.5 h-3.5" />
-        <span>BACK TO GATEWAY</span>
+        <ArrowLeft className="w-4 h-4 text-amber-400" />
+        <span>Return to Gateway</span>
       </Link>
 
       <div className="w-full max-w-md relative z-10">
         {/* Brand Header */}
-        <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-lg bg-amber-500 text-black flex items-center justify-center mx-auto mb-3 shadow-md font-black">
-            <Building className="w-6 h-6" />
-          </div>
-          <div className="flex items-center justify-center gap-2">
-            <span className="font-mono font-black text-xl text-white tracking-tight">
-              VMS<span className="text-amber-500">//</span>AUTHENTICATION
-            </span>
-          </div>
-          <p className="text-xs font-mono text-slate-400 mt-1 uppercase tracking-wider">
-            Enterprise Perimeter Access Gateway
+        <div className="text-center mb-8">
+          <span className="vms-chamfer-sm grid h-12 w-12 place-items-center bg-amber-500 text-[#07090F] mx-auto mb-3 shadow-lg">
+            <ShieldCheck size={26} strokeWidth={2.4} />
+          </span>
+          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            VMS Enterprise
+          </h1>
+          <p className="text-xs text-white/60 mt-1 uppercase tracking-wider font-semibold">
+            Perimeter Authorization Terminal
           </p>
         </div>
 
-        {/* Tactical Login Card */}
-        <div className="bg-[#0E121A] rounded-xl border border-white/[0.1] shadow-2xl p-7">
-          <div className="flex items-center justify-between pb-4 mb-5 border-b border-white/[0.08]">
-            <div className="flex items-center gap-2 font-mono text-xs text-slate-400">
-              <Terminal className="w-4 h-4 text-amber-500" />
-              <span>STAFF_VERIFICATION_DAEMON</span>
+        {/* Tactical Login Card with Chamfer */}
+        <div className="bg-[#0C111B] border border-white/15 vms-chamfer-lg shadow-2xl p-7">
+          <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
+            <div className="flex items-center gap-2 text-xs text-white/60">
+              <Terminal className="w-4 h-4 text-amber-400" />
+              <span className="font-mono">AUTH_VERIFICATION_DAEMON</span>
             </div>
-            <span className="text-[10px] font-mono text-emerald-400 font-bold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
-              PORT 5000 ONLINE
+            <span className="text-[10px] text-emerald-400 font-bold px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 vms-chamfer-sm">
+              ONLINE
             </span>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono rounded-md flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
-              {error}
+            <div className="mb-5 p-3.5 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-medium rounded flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0"></span>
+              <span>{error}</span>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-mono font-bold text-slate-300 mb-1.5 uppercase">
-                Corporate Staff Identifier (Email)
+              <label className="block text-xs font-bold text-white/80 mb-2 uppercase tracking-wide">
+                Staff Corporate Identifier (Email)
               </label>
               <div className="relative">
-                <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                <Mail className="w-4 h-4 text-white/40 absolute left-3.5 top-3" />
                 <input
                   type="email"
                   required
                   placeholder="admin@vms.local"
-                  className="w-full pl-9 pr-3 py-2 text-xs font-mono bg-[#08090C] border border-white/[0.1] rounded-md text-white placeholder-slate-600 focus:border-amber-500 focus:outline-none transition-colors"
+                  className="w-full pl-10 pr-3 py-2.5 text-sm bg-[#07090F] border border-white/15 text-white placeholder-white/30 focus:border-amber-400 focus:outline-none transition-colors vms-chamfer-sm"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -120,18 +115,18 @@ export const LoginPage = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-mono font-bold text-slate-300 mb-1.5 uppercase">
+              <label className="block text-xs font-bold text-white/80 mb-2 uppercase tracking-wide">
                 Access Passcode
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                <Lock className="w-4 h-4 text-white/40 absolute left-3.5 top-3" />
                 <input
                   type="password"
                   required
                   placeholder="••••••••••••"
-                  className="w-full pl-9 pr-3 py-2 text-xs font-mono bg-[#08090C] border border-white/[0.1] rounded-md text-white placeholder-slate-600 focus:border-amber-500 focus:outline-none transition-colors"
+                  className="w-full pl-10 pr-3 py-2.5 text-sm bg-[#07090F] border border-white/15 text-white placeholder-white/30 focus:border-amber-400 focus:outline-none transition-colors vms-chamfer-sm"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => setEmail ? setPassword(e.target.value) : null}
                 />
               </div>
             </div>
@@ -139,53 +134,55 @@ export const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 mt-2 rounded-md text-xs font-mono font-bold bg-amber-500 hover:bg-amber-400 text-black flex items-center justify-center gap-2 transition-all shadow active:scale-95 disabled:opacity-50"
+              className="vms-btn vms-btn-amber w-full py-3 mt-3 text-sm justify-center font-bold"
             >
-              <span>{loading ? 'VERIFYING CREDENTIALS...' : 'AUTHENTICATE & ENTER'}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>{loading ? 'Verifying Credentials...' : 'Authenticate & Enter'}</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
-          {/* 1-Click Evaluation Credentials */}
-          <div className="mt-6 pt-5 border-t border-white/[0.08]">
-            <p className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider mb-2.5 text-center">
-              1-Click Evaluation Roles (Auto-Fill)
+          {/* 1-Click Evaluation Roles */}
+          <div className="mt-8 pt-6 border-t border-white/10">
+            <p className="text-[10px] font-bold text-white/50 uppercase tracking-wider mb-3 text-center">
+              1-Click Demo Evaluation Roles
             </p>
-            <div className="grid grid-cols-3 gap-2 font-mono">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => fillCredentials('admin@vms.local', 'Password123!')}
-                className="p-2 text-left rounded-md bg-[#121722] border border-white/[0.08] hover:border-amber-500/80 transition-all text-xs"
+                className="p-2.5 text-left bg-[#121A29] border border-white/10 hover:border-amber-400/80 transition-all vms-chamfer-sm"
               >
-                <span className="block font-bold text-white text-[11px]">Admin</span>
-                <span className="block text-[9px] text-amber-400">Executive</span>
+                <span className="block font-bold text-white text-xs">Admin</span>
+                <span className="block text-[10px] text-amber-400 font-semibold">Executive</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => fillCredentials('guard@vms.local', 'Password123!')}
-                className="p-2 text-left rounded-md bg-[#121722] border border-white/[0.08] hover:border-emerald-500/80 transition-all text-xs"
+                className="p-2.5 text-left bg-[#121A29] border border-white/10 hover:border-emerald-400/80 transition-all vms-chamfer-sm"
               >
-                <span className="block font-bold text-white text-[11px]">Guard</span>
-                <span className="block text-[9px] text-emerald-400">Gate Desk</span>
+                <span className="block font-bold text-white text-xs">Guard</span>
+                <span className="block text-[10px] text-emerald-400 font-semibold">Gate Desk</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => fillCredentials('host.eng@vms.local', 'Password123!')}
-                className="p-2 text-left rounded-md bg-[#121722] border border-white/[0.08] hover:border-sky-500/80 transition-all text-xs"
+                className="p-2.5 text-left bg-[#121A29] border border-white/10 hover:border-sky-400/80 transition-all vms-chamfer-sm"
               >
-                <span className="block font-bold text-white text-[11px]">Host</span>
-                <span className="block text-[9px] text-sky-400">Employee</span>
+                <span className="block font-bold text-white text-xs">Host</span>
+                <span className="block text-[10px] text-sky-400 font-semibold">Employee</span>
               </button>
             </div>
           </div>
         </div>
 
-        <div className="text-center mt-6 text-[10px] font-mono text-slate-400 uppercase">
-          Certified ISO/IEC 27001 Access Architecture • 2026
+        <div className="text-center mt-6 text-xs text-white/40 font-medium">
+          Certified ISO/IEC 27001 Access Architecture · 2026
         </div>
       </div>
     </div>
   );
 };
+
+export default LoginPage;

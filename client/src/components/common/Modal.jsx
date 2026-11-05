@@ -22,23 +22,23 @@ export const Modal = ({ isOpen, onClose, title, subtitle, children, maxWidth = '
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity"
         onClick={onClose}
       />
 
-      {/* Dialog */}
+      {/* Dialog with Chamfered Architectural Corners */}
       <div
-        className={`relative w-full ${maxWidth} bg-white text-slate-900 rounded-2xl shadow-2xl border border-slate-100 overflow-hidden transform transition-all z-10`}
+        className={`relative w-full ${maxWidth} bg-[#0C111B] text-white vms-chamfer-lg shadow-2xl border border-white/20 overflow-hidden transform transition-all z-10`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#07090F]">
           <div>
-            <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-            {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
+            <h3 className="font-display text-lg sm:text-xl font-bold text-white tracking-tight">{title}</h3>
+            {subtitle && <p className="text-xs text-white/60 mt-0.5">{subtitle}</p>}
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+            className="text-white/50 hover:text-white p-1.5 hover:bg-white/[.08] transition-colors vms-chamfer-sm"
           >
             <X className="w-5 h-5" />
           </button>
@@ -51,3 +51,4 @@ export const Modal = ({ isOpen, onClose, title, subtitle, children, maxWidth = '
   );
 };
 
+export default Modal;

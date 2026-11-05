@@ -14,7 +14,7 @@ export const PageWrapper = ({ children, title, subtitle, action }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex">
+    <div className="vms-page min-h-screen bg-[#07090F] text-white flex selection:bg-amber-400 selection:text-[#07090F]">
       {/* Sidebar Navigation */}
       <Sidebar
         mobileOpen={mobileOpen}
@@ -29,10 +29,10 @@ export const PageWrapper = ({ children, title, subtitle, action }) => {
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           {/* Page Title & Action Bar */}
           {(title || action) && (
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 pb-6 border-b border-white/10">
               <div>
-                {title && <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{title}</h1>}
-                {subtitle && <p className="text-sm text-slate-500 mt-1">{subtitle}</p>}
+                {title && <h1 className="font-display text-2xl sm:text-3xl text-white tracking-tight">{title}</h1>}
+                {subtitle && <p className="text-sm text-white/60 mt-1">{subtitle}</p>}
               </div>
               {action && <div className="flex items-center gap-3">{action}</div>}
             </div>
@@ -60,3 +60,4 @@ export const PageWrapper = ({ children, title, subtitle, action }) => {
   );
 };
 
+export default PageWrapper;

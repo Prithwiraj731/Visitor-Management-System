@@ -4,7 +4,7 @@ import { userService, departmentService } from '../services/api';
 import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
 import { Modal } from '../components/common/Modal';
-import { UserCheck, Plus, Mail, Phone, Shield } from 'lucide-react';
+import { Plus } from 'lucide-react';
 
 export const StaffPage = () => {
   const [users, setUsers] = useState([]);
@@ -70,10 +70,10 @@ export const StaffPage = () => {
         </Button>
       }
     >
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+      <div className="bg-[#0C111B] vms-chamfer border border-white/10 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50/80 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-100">
+            <thead className="bg-[#07090F] text-white/50 uppercase tracking-wider font-bold border-b border-white/10">
               <tr>
                 <th className="px-5 py-3.5">Staff Name</th>
                 <th className="px-5 py-3.5">Email / Phone</th>
@@ -83,31 +83,33 @@ export const StaffPage = () => {
                 <th className="px-5 py-3.5 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-white/[.06]">
               {users.map((u) => (
-                <tr key={u.id} className="hover:bg-slate-50/70 transition-colors">
+                <tr key={u.id} className="hover:bg-[#121A29] transition-colors">
                   <td className="px-5 py-4">
-                    <div className="font-semibold text-slate-900 text-sm">{u.fullName}</div>
-                    <div className="text-[10px] text-slate-400">Created {new Date(u.createdAt).toLocaleDateString()}</div>
+                    <div className="font-bold text-white text-sm">{u.fullName}</div>
+                    <div className="text-[10px] text-white/40">Created {new Date(u.createdAt).toLocaleDateString()}</div>
                   </td>
 
                   <td className="px-5 py-4">
-                    <div className="text-slate-800 font-medium">{u.email}</div>
-                    <div className="text-[11px] text-slate-400">{u.phone || 'No phone'}</div>
+                    <div className="text-white/80 font-medium">{u.email}</div>
+                    <div className="text-[11px] text-white/40">{u.phone || 'No phone'}</div>
                   </td>
 
                   <td className="px-5 py-4">
                     <Badge status={u.role} />
                   </td>
 
-                  <td className="px-5 py-4 text-slate-600">
-                    {u.department?.name || 'All Facilities (Global)'}
+                  <td className="px-5 py-4 text-white/70">
+                    {u.department?.name || 'General Operations'}
                   </td>
 
                   <td className="px-5 py-4">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${
-                        u.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-bold uppercase vms-chamfer-sm ${
+                        u.isActive
+                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                          : 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
                       }`}
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-current"></span>
@@ -118,9 +120,13 @@ export const StaffPage = () => {
                   <td className="px-5 py-4 text-right">
                     <button
                       onClick={() => toggleUserStatus(u)}
-                      className="text-xs font-semibold text-brand-600 hover:text-brand-800"
+                      className={`text-xs font-bold px-3 py-1.5 vms-chamfer-sm transition-colors ${
+                        u.isActive
+                          ? 'bg-white/10 text-white/70 hover:bg-rose-500/20 hover:text-rose-400'
+                          : 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
+                      }`}
                     >
-                      {u.isActive ? 'Deactivate' : 'Activate'}
+                      {u.isActive ? 'Deactivate' : 'Enable'}
                     </button>
                   </td>
                 </tr>
@@ -134,17 +140,19 @@ export const StaffPage = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Add Staff Member"
-        subtitle="Provision a new employee, guard, or administrative account"
+        title="Provision New Staff Member"
+        subtitle="Create an internal authorized access identity"
       >
         <form onSubmit={handleCreate} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1">Full Name *</label>
+            <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">
+              Full Legal Name *
+            </label>
             <input
               type="text"
               required
-              placeholder="e.g. Johnathan Vance"
-              className="w-full px-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none"
+              placeholder="e.g. Officer Nathan Drake"
+              className="w-full px-3.5 py-2.5 text-sm bg-[#07090F] border border-white/15 text-white placeholder-white/30 vms-chamfer-sm focus:border-amber-400 focus:outline-none"
               value={formData.fullName}
               onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
             />
@@ -152,23 +160,27 @@ export const StaffPage = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">Email *</label>
+              <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">
+                Corporate Email *
+              </label>
               <input
                 type="email"
                 required
-                placeholder="user@vms.local"
-                className="w-full px-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none"
+                placeholder="officer@vms.local"
+                className="w-full px-3.5 py-2.5 text-sm bg-[#07090F] border border-white/15 text-white placeholder-white/30 vms-chamfer-sm focus:border-amber-400 focus:outline-none"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">Password *</label>
+              <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">
+                Temporary Password *
+              </label>
               <input
                 type="password"
                 required
-                placeholder="TemporaryPassword123!"
-                className="w-full px-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none"
+                placeholder="••••••••••••"
+                className="w-full px-3.5 py-2.5 text-sm bg-[#07090F] border border-white/15 text-white placeholder-white/30 vms-chamfer-sm focus:border-amber-400 focus:outline-none"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
@@ -177,26 +189,31 @@ export const StaffPage = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">Role *</label>
+              <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">
+                Assigned RBAC Role *
+              </label>
               <select
-                className="w-full px-3 py-2 text-sm text-slate-900 font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none cursor-pointer"
+                className="w-full px-3.5 py-2.5 text-sm bg-[#07090F] border border-white/15 text-white vms-chamfer-sm focus:border-amber-400 focus:outline-none cursor-pointer"
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
               >
-                <option value="host" className="text-slate-900 bg-white">Employee / Host</option>
-                <option value="guard" className="text-slate-900 bg-white">Security Guard</option>
+                <option value="guard" className="text-slate-900 bg-white">Security Guard (Gate View)</option>
+                <option value="host" className="text-slate-900 bg-white">Host Employee (Approvals)</option>
                 <option value="admin" className="text-slate-900 bg-white">Administrator</option>
+                <option value="super_admin" className="text-slate-900 bg-white">Super Admin (All Privileges)</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">Department</label>
+              <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">
+                Department
+              </label>
               <select
-                className="w-full px-3 py-2 text-sm text-slate-900 font-semibold bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none cursor-pointer"
+                className="w-full px-3.5 py-2.5 text-sm bg-[#07090F] border border-white/15 text-white vms-chamfer-sm focus:border-amber-400 focus:outline-none cursor-pointer"
                 value={formData.departmentId}
                 onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
               >
-                <option value="" className="text-slate-900 bg-white">None / Facility Wide</option>
+                <option value="" className="text-slate-900 bg-white">Select Department</option>
                 {departments.map((d) => (
                   <option key={d.id} value={d.id} className="text-slate-900 bg-white">
                     {d.name}
@@ -207,24 +224,30 @@ export const StaffPage = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-800 mb-1">Phone Number</label>
+            <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">
+              Contact Phone (Optional)
+            </label>
             <input
-              type="tel"
-              placeholder="+1-555-0144"
-              className="w-full px-3 py-2 text-sm text-slate-900 font-medium placeholder-slate-400 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:outline-none"
+              type="text"
+              placeholder="+1-555-0199"
+              className="w-full px-3.5 py-2.5 text-sm bg-[#07090F] border border-white/15 text-white placeholder-white/30 vms-chamfer-sm focus:border-amber-400 focus:outline-none"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
+          <div className="pt-4 flex justify-end gap-3 border-t border-white/10">
+            <Button variant="secondary" onClick={() => setIsModalOpen(false)} type="button">
               Cancel
             </Button>
-            <Button type="submit">Provision Account</Button>
+            <Button variant="primary" type="submit">
+              Provision Staff Account
+            </Button>
           </div>
         </form>
       </Modal>
     </PageWrapper>
   );
 };
+
+export default StaffPage;
