@@ -7,15 +7,17 @@ import {
   checkOutVisit,
   approveVisit,
   rejectVisit,
-  getEmergencyManifest
+  getEmergencyManifest,
+  getVisitPass
 } from '../controllers/visitController.js';
 import { authenticate } from '../middleware/auth.js';
 import { authorize } from '../middleware/rbac.js';
 
 const router = Router();
 
-// Public Kiosk Self-Registration (allows guests to register & receive their QR pass directly)
+// Public Kiosk Self-Registration & Pass Status Lookup
 router.post('/kiosk', createVisit);
+router.get('/pass/:id', getVisitPass);
 
 router.use(authenticate);
 

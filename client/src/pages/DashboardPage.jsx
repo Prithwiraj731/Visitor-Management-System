@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PageWrapper } from '../components/layout/PageWrapper';
-import { dashboardService } from '../services/api';
+import { dashboardService, visitService } from '../services/api';
 import { Badge } from '../components/common/Badge';
 import {
   Users,
@@ -39,6 +39,15 @@ export const DashboardPage = () => {
       console.error('Failed to load dashboard metrics', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAdmit = async (id) => {
+    try {
+      await visitService.checkIn(id);
+      await loadData();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Check-in failed');
     }
   };
 
@@ -242,12 +251,22 @@ export const DashboardPage = () => {
                       <Badge status={v.status} />
                     </td>
                     <td className="px-5 py-4 text-right">
-                      <button
-                        onClick={() => setSelectedBadge(v)}
-                        className="text-amber-400 hover:text-amber-300 font-bold hover:underline"
-                      >
-                        View Pass
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        {v.status === 'pending' && (
+                          <button
+                            onClick={() => handleAdmit(v.id)}
+                            className="vms-btn bg-emerald-500 hover:bg-emerald-400 text-[#07090F] font-bold text-xs py-1 px-2.5"
+                          >
+                            Admit
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setSelectedBadge(v)}
+                          className="text-amber-400 hover:text-amber-300 font-bold hover:underline"
+                        >
+                          View Pass
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))

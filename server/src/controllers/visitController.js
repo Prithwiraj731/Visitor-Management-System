@@ -86,8 +86,12 @@ export const createVisit = async (req, res, next) => {
     });
     const qrCodeDataUrl = await QRCode.toDataURL(qrPayload, { width: 300, margin: 1 });
 
-    const isDirectCheckIn = (autoCheckIn && (!req.user || req.user?.role === 'guard' || req.user?.role === 'admin' || req.user?.role === 'super_admin'));
-    const initialStatus = isDirectCheckIn ? 'checked_in' : (visitType === 'pre_registered' ? 'pending' : 'checked_in');
+    const isStaffDirectCheckIn = Boolean(
+      autoCheckIn &&
+      req.user &&
+      (req.user.role === 'guard' || req.user.role === 'admin' || req.user.role === 'super_admin')
+    );
+    const initialStatus = isStaffDirectCheckIn ? 'checked_in' : 'pending';
 
     const visit = await Visit.create({
       visitorId: visitor.id,
@@ -407,6 +411,30 @@ export const rejectVisit = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: 'Visit rejected',
+      data: visit
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getVisitPass = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const visit = await Visit.findByPk(id, {
+      include: [
+        { model: Visitor, as: 'visitor' },
+        { model: User, as: 'host', attributes: ['id', 'fullName', 'email', 'phone'] },
+        { model: Department, as: 'department' }
+      ]
+    });
+
+    if (!visit) {
+      return res.status(404).json({ success: false, message: 'Pass not found' });
+    }
+
+    return res.status(200).json({
+      success: true,
       data: visit
     });
   } catch (error) {
