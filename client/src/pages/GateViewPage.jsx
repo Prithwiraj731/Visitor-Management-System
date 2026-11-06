@@ -136,7 +136,7 @@ export const GateViewPage = () => {
             {todayData.pendingApproval}
           </div>
           <p className={`text-xs mt-1 ${statusFilter === 'expected' ? 'text-[#07090F]/80' : 'text-white/50'}`}>
-            Scheduled or awaiting host
+            Scheduled or expected arrival
           </p>
         </button>
 
@@ -207,7 +207,7 @@ export const GateViewPage = () => {
             <thead className="bg-[#07090F] text-white/50 uppercase tracking-wider font-bold border-b border-white/10">
               <tr>
                 <th className="px-5 py-3.5">Visitor Details</th>
-                <th className="px-5 py-3.5">Host & Dept</th>
+                <th className="px-5 py-3.5">Staff Contact & Dept</th>
                 <th className="px-5 py-3.5">Time & Purpose</th>
                 <th className="px-5 py-3.5">Pass Serial</th>
                 <th className="px-5 py-3.5">Gate Status</th>

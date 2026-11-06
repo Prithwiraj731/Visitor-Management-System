@@ -96,7 +96,7 @@ export const KioskModal = ({ isOpen, onClose }) => {
             <QrCode className="w-5 h-5" />
           </div>
           <p className="text-xs text-white/70 leading-snug">
-            Direct contactless gate check-in. Fill details below to generate your cryptographic pass and notify your host.
+            Direct contactless gate check-in. Fill details below to generate your cryptographic pass and register your arrival.
           </p>
         </div>
 
@@ -172,7 +172,7 @@ export const KioskModal = ({ isOpen, onClose }) => {
 
             <div>
               <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">
-                Visiting Employee (Host) <span className="text-amber-400">*</span>
+                Staff / Person to Visit <span className="text-amber-400">*</span>
               </label>
               <select
                 required

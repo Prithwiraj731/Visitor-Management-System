@@ -28,7 +28,7 @@ export const getUsers = async (req, res, next) => {
 export const getHosts = async (req, res, next) => {
   try {
     const hosts = await User.findAll({
-      where: { role: 'host', isActive: true },
+      where: { isActive: true },
       include: [{ model: Department, as: 'department', attributes: ['id', 'name', 'floor', 'building'] }],
       order: [['fullName', 'ASC']]
     });

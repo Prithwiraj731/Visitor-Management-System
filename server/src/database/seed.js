@@ -38,7 +38,7 @@ export const seedDatabase = async () => {
       fullName: 'Dr. Alan Grant (Principal Architect)',
       email: 'host.eng@vms.local',
       password: 'Password123!',
-      role: 'host',
+      role: 'admin',
       phone: '+1-555-0102',
       departmentId: depts[0].id,
       isActive: true
@@ -48,7 +48,7 @@ export const seedDatabase = async () => {
       fullName: 'Elena Rostova (Head of Talent)',
       email: 'host.hr@vms.local',
       password: 'Password123!',
-      role: 'host',
+      role: 'admin',
       phone: '+1-555-0103',
       departmentId: depts[1].id,
       isActive: true
@@ -58,7 +58,7 @@ export const seedDatabase = async () => {
       fullName: 'David Sterling (VP Partnerships)',
       email: 'host.sales@vms.local',
       password: 'Password123!',
-      role: 'host',
+      role: 'admin',
       phone: '+1-555-0104',
       departmentId: depts[2].id,
       isActive: true

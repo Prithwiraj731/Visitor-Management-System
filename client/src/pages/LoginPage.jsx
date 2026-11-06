@@ -18,9 +18,6 @@ export const LoginPage = () => {
     if (roleHint === 'guard') {
       setEmail('guard@vms.local');
       setPassword('Password123!');
-    } else if (roleHint === 'host') {
-      setEmail('host.eng@vms.local');
-      setPassword('Password123!');
     } else if (roleHint === 'super_admin' || roleHint === 'admin') {
       setEmail('admin@vms.local');
       setPassword('Password123!');
@@ -126,7 +123,7 @@ export const LoginPage = () => {
                   placeholder="••••••••••••"
                   className="w-full pl-10 pr-3 py-2.5 text-sm bg-[#07090F] border border-white/15 text-white placeholder-white/30 focus:border-amber-400 focus:outline-none transition-colors vms-chamfer-sm"
                   value={password}
-                  onChange={(e) => setEmail ? setPassword(e.target.value) : null}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
             </div>
@@ -146,32 +143,29 @@ export const LoginPage = () => {
             <p className="text-[10px] font-bold text-white/50 uppercase tracking-wider mb-3 text-center">
               1-Click Demo Evaluation Roles
             </p>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => fillCredentials('admin@vms.local', 'Password123!')}
-                className="p-2.5 text-left bg-[#121A29] border border-white/10 hover:border-amber-400/80 transition-all vms-chamfer-sm"
+                className="p-3 text-left bg-[#121A29] border border-white/10 hover:border-amber-400/80 transition-all vms-chamfer-sm group"
               >
-                <span className="block font-bold text-white text-xs">Admin</span>
-                <span className="block text-[10px] text-amber-400 font-semibold">Executive</span>
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-white text-xs group-hover:text-amber-400 transition-colors">Admin</span>
+                  <span className="text-[10px] text-amber-400 font-semibold px-1.5 py-0.5 bg-amber-400/10 vms-chamfer-sm">Full System</span>
+                </div>
+                <span className="block text-[11px] text-white/50 mt-1">Management & Audit</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => fillCredentials('guard@vms.local', 'Password123!')}
-                className="p-2.5 text-left bg-[#121A29] border border-white/10 hover:border-emerald-400/80 transition-all vms-chamfer-sm"
+                className="p-3 text-left bg-[#121A29] border border-white/10 hover:border-emerald-400/80 transition-all vms-chamfer-sm group"
               >
-                <span className="block font-bold text-white text-xs">Guard</span>
-                <span className="block text-[10px] text-emerald-400 font-semibold">Gate Desk</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => fillCredentials('host.eng@vms.local', 'Password123!')}
-                className="p-2.5 text-left bg-[#121A29] border border-white/10 hover:border-sky-400/80 transition-all vms-chamfer-sm"
-              >
-                <span className="block font-bold text-white text-xs">Host</span>
-                <span className="block text-[10px] text-sky-400 font-semibold">Employee</span>
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-white text-xs group-hover:text-emerald-400 transition-colors">Guard</span>
+                  <span className="text-[10px] text-emerald-400 font-semibold px-1.5 py-0.5 bg-emerald-400/10 vms-chamfer-sm">Gate Desk</span>
+                </div>
+                <span className="block text-[11px] text-white/50 mt-1">Admit & Scanner</span>
               </button>
             </div>
           </div>

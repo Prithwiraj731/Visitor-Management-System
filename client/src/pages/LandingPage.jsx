@@ -20,37 +20,30 @@ const ROLES = [
   {
     id: 'visitor', icon: DoorOpen, label: 'Visitor self-pass', path: null, plane: '#38BDF8', ink: INK,
     headline: 'Walk in. Get badged. No account needed.',
-    blurb: 'Guests check themselves in at the kiosk, notify their host and receive a verified badge in seconds.',
-    points: ['No login or app download', 'Host is notified the moment you arrive', 'Badge is ready to scan at the turnstile'],
+    blurb: 'Guests check themselves in at the kiosk and receive an authorized digital badge in seconds.',
+    points: ['No login or app download required', 'Badge generated instantly with secure QR token', 'Ready to scan at the gate turnstile'],
     cta: 'Start check-in',
   },
   {
     id: 'guard', icon: ShieldCheck, label: 'Guard gate desk', path: '/gate', plane: '#F59E0B', ink: INK,
     headline: 'One screen for everyone at the door.',
     blurb: 'Scan badges, admit or hold arrivals, and see who is expected next without leaving the desk.',
-    points: ['Scan or search to verify in one step', 'Hold, deny or escort with a reason on record', 'Shift handover shows who is still on site'],
+    points: ['Scan QR or search by phone/name in one step', 'Hold, deny, or check out arrivals on record', 'Real-time shift log of who is currently on site'],
     cta: 'Open gate desk',
   },
   {
-    id: 'host', icon: UserCheck, label: 'Employee host', path: '/dashboard', plane: '#10B981', ink: INK,
-    headline: 'Invite guests before they arrive.',
-    blurb: 'Pre-register visitors, approve walk-ins and get told when your guest is at reception.',
-    points: ['Pre-register a guest in under a minute', 'Approve or decline walk-ins from your phone', 'Check guests out when the meeting ends'],
-    cta: 'Open host console',
-  },
-  {
-    id: 'admin', icon: Building2, label: 'Super admin', path: '/dashboard', plane: '#EEF1F6', ink: INK,
-    headline: 'Policy, sites and audit in one place.',
-    blurb: 'Configure access rules per site, manage staff roles and export a complete visit history.',
-    points: ['Per-site rules, blocklists and badge types', 'Role-based access for every staff member', 'Exportable audit trail for every entry and exit'],
+    id: 'admin', icon: Building2, label: 'Super admin console', path: '/dashboard', plane: '#10B981', ink: INK,
+    headline: 'Policy, sites, and audit in one place.',
+    blurb: 'Manage staff & guards, view enterprise analytics, and export a complete visit history.',
+    points: ['Manage guards, departments, and security staff', 'Role-based access control with tamper-evident audit logs', 'Instant 1-click building evacuation manifest'],
     cta: 'Open admin console',
   },
 ];
 
 const PERSONAS = {
-  guest: { label: 'Guest', accent: '#38BDF8', name: 'Maya Chen', tag: 'Guest', host: 'Hosted by D. Okafor', access: 'Lobby · Level 3', valid: 'Valid today until 17:30' },
-  contractor: { label: 'Contractor', accent: '#F59E0B', name: 'Rahul Verma', tag: 'Contractor', host: 'Facilities team', access: 'Loading dock · Plant room', valid: 'Valid today until 18:00' },
-  vip: { label: 'VIP', accent: '#10B981', name: 'Elena Rossi', tag: 'VIP guest', host: 'Executive office', access: 'Public floors · Boardroom', valid: 'Valid today until 16:00' },
+  guest: { label: 'Guest', accent: '#38BDF8', name: 'Maya Chen', tag: 'Guest', host: 'Contact: D. Okafor', access: 'Lobby · Level 3', valid: 'Valid today until 17:30' },
+  contractor: { label: 'Contractor', accent: '#F59E0B', name: 'Rahul Verma', tag: 'Contractor', host: 'Contact: Facilities', access: 'Loading dock · Plant room', valid: 'Valid today until 18:00' },
+  vip: { label: 'VIP', accent: '#10B981', name: 'Elena Rossi', tag: 'VIP guest', host: 'Contact: Executive Suite', access: 'Public floors · Boardroom', valid: 'Valid today until 16:00' },
 };
 
 const FALLBACK_STATS = { currentlyInside: 2, totalToday: 8, avgDurationMinutes: 38 };
@@ -65,7 +58,7 @@ const FALLBACK_VISITS = [
 
 const STATUS = {
   inside: { label: 'On site', color: '#10B981', text: 'text-emerald-300' },
-  pending: { label: 'Awaiting host', color: '#F59E0B', text: 'text-amber-300' },
+  pending: { label: 'Awaiting badge', color: '#F59E0B', text: 'text-amber-300' },
   left: { label: 'Checked out', color: '#5B6475', text: 'text-white/55' },
 };
 
@@ -210,11 +203,11 @@ export function LandingPage() {
               Every visitor, badged and accounted for.
             </h1>
             <p className="mt-8 max-w-[33rem] text-lg leading-relaxed text-white/70">
-              Guests check in themselves, hosts get told instantly, and your guard desk sees exactly who is in the building — today, and in an emergency.
+              Guests check in at the kiosk, guards verify credentials at the gate, and administrators see exactly who is in the building — today, and in an emergency.
             </p>
             <div className="mt-11 flex flex-wrap gap-3">
               <button onClick={() => setIsKioskOpen(true)} className="vms-btn vms-btn-amber px-7 py-4 text-base">Check in as a visitor <ArrowUpRight size={18} /></button>
-              <button onClick={() => handleLaunchRole('/dashboard', 'host')} className="vms-btn vms-btn-line px-7 py-4 text-base">Staff sign-in</button>
+              <button onClick={() => handleLaunchRole('/dashboard', 'admin')} className="vms-btn vms-btn-line px-7 py-4 text-base">Staff & Admin sign-in</button>
             </div>
           </div>
 
@@ -348,7 +341,7 @@ export function LandingPage() {
 
             <div className="mt-12">
               <div className="hidden grid-cols-[2.4fr_2fr_1.8fr_1.3fr_.7fr] gap-4 border-b border-white/15 px-3 pb-3 text-sm text-white/55 md:grid">
-                <span>Visitor</span><span>Host</span><span>Area</span><span>Status</span><span className="text-right">Time</span>
+                <span>Visitor</span><span>Staff Contact</span><span>Area</span><span>Status</span><span className="text-right">Time</span>
               </div>
               <ul>
                 {recentVisits.map((v, i) => {

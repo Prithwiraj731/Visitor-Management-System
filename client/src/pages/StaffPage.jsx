@@ -15,7 +15,7 @@ export const StaffPage = () => {
     fullName: '',
     email: '',
     password: '',
-    role: 'host',
+    role: 'guard',
     phone: '',
     departmentId: ''
   });
@@ -44,7 +44,7 @@ export const StaffPage = () => {
     try {
       await userService.createUser(formData);
       setIsModalOpen(false);
-      setFormData({ fullName: '', email: '', password: '', role: 'host', phone: '', departmentId: '' });
+      setFormData({ fullName: '', email: '', password: '', role: 'guard', phone: '', departmentId: '' });
       await loadData();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to create user');
@@ -63,7 +63,7 @@ export const StaffPage = () => {
   return (
     <PageWrapper
       title="Staff & Role Permissions"
-      subtitle="Authorized security guards, hosts, and administrative accounts"
+      subtitle="Authorized security guards, gate officers, and administrative accounts"
       action={
         <Button icon={Plus} onClick={() => setIsModalOpen(true)}>
           Add Staff Member
@@ -197,10 +197,9 @@ export const StaffPage = () => {
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
               >
-                <option value="guard" className="text-slate-900 bg-white">Security Guard (Gate View)</option>
-                <option value="host" className="text-slate-900 bg-white">Host Employee (Approvals)</option>
-                <option value="admin" className="text-slate-900 bg-white">Administrator</option>
-                <option value="super_admin" className="text-slate-900 bg-white">Super Admin (All Privileges)</option>
+                <option value="guard" className="text-slate-900 bg-white">Security Guard (Gate View & Desk)</option>
+                <option value="admin" className="text-slate-900 bg-white">Administrator (Operations & Audit)</option>
+                <option value="super_admin" className="text-slate-900 bg-white">Super Admin (All System Privileges)</option>
               </select>
             </div>
 

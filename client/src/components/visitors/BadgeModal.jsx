@@ -67,7 +67,7 @@ export const BadgeModal = ({ isOpen, visit, onClose }) => {
             <div className="w-full mt-4 pt-4 border-t border-slate-100 text-left text-xs space-y-2">
               <div className="flex justify-between items-center py-1 border-b border-slate-50">
                 <span className="text-slate-500 flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5" /> Host:
+                  <User className="w-3.5 h-3.5" /> Visiting:
                 </span>
                 <span className="font-semibold text-slate-800">{host.fullName || 'Reception Desk'}</span>
               </div>

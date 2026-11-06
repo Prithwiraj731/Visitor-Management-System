@@ -20,8 +20,6 @@ export const Badge = ({ status, children, className = '' }) => {
         return 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
       case 'guard':
         return 'bg-teal-500/15 text-teal-300 border border-teal-500/30';
-      case 'host':
-        return 'bg-sky-500/15 text-sky-300 border border-sky-500/30';
       default:
         return 'bg-white/10 text-white/70 border border-white/15';
     }
@@ -46,8 +44,6 @@ export const Badge = ({ status, children, className = '' }) => {
         return 'Admin';
       case 'guard':
         return 'Security Guard';
-      case 'host':
-        return 'Employee / Host';
       default:
         return status;
     }

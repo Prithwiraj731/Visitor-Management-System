@@ -137,7 +137,7 @@ export const ReportsPage = () => {
               <tr>
                 <th className="px-5 py-3.5">Visitor</th>
                 <th className="px-5 py-3.5">Organization</th>
-                <th className="px-5 py-3.5">Host</th>
+                <th className="px-5 py-3.5">Staff Contact</th>
                 <th className="px-5 py-3.5">Department</th>
                 <th className="px-5 py-3.5">Arrival Timestamp</th>
                 <th className="px-5 py-3.5">Exit Timestamp</th>

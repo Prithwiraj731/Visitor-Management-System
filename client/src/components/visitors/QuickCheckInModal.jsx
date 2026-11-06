@@ -161,10 +161,10 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
             </div>
           </div>
 
-          {/* Host */}
+          {/* Person to Visit */}
           <div>
             <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">
-              Host Employee <span className="text-amber-400">*</span>
+              Staff / Person to Visit <span className="text-amber-400">*</span>
             </label>
             <select
               required

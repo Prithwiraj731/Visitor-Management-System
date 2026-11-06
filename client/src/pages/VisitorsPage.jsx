@@ -101,7 +101,7 @@ export const VisitorsPage = () => {
               <tr>
                 <th className="px-5 py-3.5">Visitor</th>
                 <th className="px-5 py-3.5">Organization</th>
-                <th className="px-5 py-3.5">Host Employee</th>
+                <th className="px-5 py-3.5">Staff Contact</th>
                 <th className="px-5 py-3.5">Department</th>
                 <th className="px-5 py-3.5">Check-In</th>
                 <th className="px-5 py-3.5">Check-Out</th>

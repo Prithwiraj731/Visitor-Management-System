@@ -96,7 +96,7 @@ export const EvacuationPage = () => {
                 <th className="px-5 py-3.5">Visitor Name</th>
                 <th className="px-5 py-3.5">Phone (Direct Line)</th>
                 <th className="px-5 py-3.5">Company</th>
-                <th className="px-5 py-3.5">Host Employee</th>
+                <th className="px-5 py-3.5">Staff Contact</th>
                 <th className="px-5 py-3.5">Wing / Location</th>
                 <th className="px-5 py-3.5">Entry Time</th>
                 <th className="px-5 py-3.5">Badge Serial</th>

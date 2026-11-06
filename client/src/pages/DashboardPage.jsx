@@ -101,11 +101,11 @@ export const DashboardPage = () => {
             <span className="font-display text-4xl sm:text-5xl font-extrabold text-white tabular-nums tracking-tight">
               {loading ? '...' : stats?.pendingApprovals ?? 0}
             </span>
-            <span className="text-xs text-amber-400 font-semibold">awaiting host</span>
+            <span className="text-xs text-amber-400 font-semibold">expected</span>
           </div>
           <div className="mt-4 flex items-center gap-2 text-xs text-white/50">
             <Clock className="w-3.5 h-3.5 text-amber-400" />
-            <span>Host approval queue</span>
+            <span>Expected arrival queue</span>
           </div>
         </div>
 
@@ -219,7 +219,7 @@ export const DashboardPage = () => {
               <tr>
                 <th className="px-5 py-3.5">Visitor</th>
                 <th className="px-5 py-3.5">Company</th>
-                <th className="px-5 py-3.5">Host Employee</th>
+                <th className="px-5 py-3.5">Staff Contact</th>
                 <th className="px-5 py-3.5">Department</th>
                 <th className="px-5 py-3.5">Badge Serial</th>
                 <th className="px-5 py-3.5">Status</th>

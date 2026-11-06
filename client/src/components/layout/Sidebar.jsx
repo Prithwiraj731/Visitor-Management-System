@@ -19,14 +19,14 @@ export const Sidebar = ({ mobileOpen, setMobileOpen, onOpenNewVisit }) => {
   const { user, logout, hasRole } = useAuth();
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['super_admin', 'admin', 'guard', 'host'] },
+    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['super_admin', 'admin', 'guard'] },
     { name: 'Gate Operations', href: '/gate', icon: ShieldCheck, roles: ['super_admin', 'admin', 'guard'] },
-    { name: 'Visitors Log', href: '/visitors', icon: Users, roles: ['super_admin', 'admin', 'guard', 'host'] },
-    { name: 'Departments', href: '/departments', icon: Building2, roles: ['super_admin', 'admin', 'guard', 'host'] },
+    { name: 'Visitors Log', href: '/visitors', icon: Users, roles: ['super_admin', 'admin', 'guard'] },
+    { name: 'Departments', href: '/departments', icon: Building2, roles: ['super_admin', 'admin', 'guard'] },
     { name: 'Staff & Roles', href: '/staff', icon: UserCheck, roles: ['super_admin', 'admin'] },
     { name: 'Analytics & Reports', href: '/reports', icon: FileBarChart2, roles: ['super_admin', 'admin', 'guard'] },
     { name: 'Emergency Manifest', href: '/emergency', icon: AlertTriangle, roles: ['super_admin', 'admin', 'guard'], danger: true },
-    { name: 'Public Homepage', href: '/', icon: Globe, roles: ['super_admin', 'admin', 'guard', 'host'] },
+    { name: 'Public Homepage', href: '/', icon: Globe, roles: ['super_admin', 'admin', 'guard'] },
   ];
 
   const filteredNav = navigation.filter(item => hasRole(...item.roles));
