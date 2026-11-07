@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { visitService, userService } from '../../services/api';
-import { QrCode, User, Phone, Mail, Building, CheckCircle2 } from 'lucide-react';
+import { useLockdown } from '../../context/LockdownContext';
+import { QrCode, User, Phone, Mail, Building, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { BadgeModal } from './BadgeModal';
 
 export const KioskModal = ({ isOpen, onClose }) => {
+  const { isLockdown } = useLockdown();
   const [hosts, setHosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -87,26 +89,46 @@ export const KioskModal = ({ isOpen, onClose }) => {
       <Modal
         isOpen={isOpen && !issuedVisit}
         onClose={onClose}
-        title="Visitor Fast-Pass Kiosk"
-        subtitle="Self-service contactless entry registration & digital pass generator"
+        title={isLockdown ? 'DEFCON 1 Emergency Lockout' : 'Visitor Fast-Pass Kiosk'}
+        subtitle={isLockdown ? 'Facility security directive in effect' : 'Self-service contactless entry registration & digital pass generator'}
         maxWidth="max-w-xl"
       >
-        <div className="mb-6 p-4 bg-[#07090F] border border-white/10 vms-chamfer-sm flex items-center gap-3">
-          <div className="w-9 h-9 bg-amber-500 text-[#07090F] flex items-center justify-center shrink-0 vms-chamfer-sm font-bold">
-            <QrCode className="w-5 h-5" />
+        {isLockdown ? (
+          <div className="py-8 px-4 text-center">
+            <div className="w-16 h-16 bg-red-600/20 text-red-500 border border-red-500/40 mx-auto flex items-center justify-center vms-chamfer mb-4">
+              <ShieldAlert className="w-9 h-9 animate-pulse" />
+            </div>
+            <h3 className="font-display text-xl font-bold text-white mb-2 uppercase tracking-wide">
+              Perimeter Entry Suspended
+            </h3>
+            <p className="text-xs text-red-300 font-mono mb-4 max-w-md mx-auto">
+              DEFCON 1 Emergency Directive: Self-service kiosk registrations are currently suspended by security operations.
+            </p>
+            <p className="text-xs text-white/60 mb-6 max-w-sm mx-auto">
+              All visitors must report immediately to the checkpoint security guard or front desk station.
+            </p>
+            <Button variant="secondary" onClick={onClose} className="mx-auto">
+              Close Notice
+            </Button>
           </div>
-          <p className="text-xs text-white/70 leading-snug">
-            Direct contactless gate check-in. Fill details below to generate your cryptographic pass and register your arrival.
-          </p>
-        </div>
+        ) : (
+          <>
+            <div className="mb-6 p-4 bg-[#07090F] border border-white/10 vms-chamfer-sm flex items-center gap-3">
+              <div className="w-9 h-9 bg-amber-500 text-[#07090F] flex items-center justify-center shrink-0 vms-chamfer-sm font-bold">
+                <QrCode className="w-5 h-5" />
+              </div>
+              <p className="text-xs text-white/70 leading-snug">
+                Direct contactless gate check-in. Fill details below to generate your cryptographic pass and register your arrival.
+              </p>
+            </div>
 
-        {error && (
-          <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold vms-chamfer-sm">
-            {error}
-          </div>
-        )}
+            {error && (
+              <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-semibold vms-chamfer-sm">
+                {error}
+              </div>
+            )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-white/80 uppercase mb-1.5">
@@ -204,16 +226,18 @@ export const KioskModal = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          <div className="pt-5 flex justify-end gap-3 border-t border-white/10">
-            <Button variant="secondary" onClick={onClose} type="button">
-              Cancel
-            </Button>
-            <Button variant="primary" type="submit" loading={loading} icon={CheckCircle2}>
-              Generate Gate Pass
-            </Button>
-          </div>
-        </form>
-      </Modal>
+            <div className="pt-5 flex justify-end gap-3 border-t border-white/10">
+              <Button variant="secondary" onClick={onClose} type="button">
+                Cancel
+              </Button>
+              <Button variant="primary" type="submit" loading={loading} icon={CheckCircle2}>
+                Generate Gate Pass
+              </Button>
+            </div>
+          </form>
+        </>
+      )}
+    </Modal>
 
       {/* Render Issued Badge Pass Modal */}
       <BadgeModal

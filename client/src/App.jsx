@@ -1,6 +1,9 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LockdownProvider } from './context/LockdownContext';
+import { LockdownBanner } from './components/common/LockdownBanner';
+import { SentinelCommandBar } from './components/common/SentinelCommandBar';
 import { LandingPage } from './pages/LandingPage';
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -37,91 +40,99 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 export function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public Modern Landing Page */}
-          <Route path="/" element={<LandingPage />} />
+      <LockdownProvider>
+        <BrowserRouter>
+          {/* Global Emergency Lockdown Banner */}
+          <LockdownBanner />
 
-          {/* Authentication Gateway */}
-          <Route path="/login" element={<LoginPage />} />
+          {/* AI Security Copilot Command Palette (Ctrl+K) */}
+          <SentinelCommandBar />
 
-          {/* Supabase Integration Verification */}
-          <Route path="/supabase-test" element={<SupabaseTestPage />} />
+          <Routes>
+            {/* Public Modern Landing Page */}
+            <Route path="/" element={<LandingPage />} />
 
-          {/* Operations Dashboard */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
+            {/* Authentication Gateway */}
+            <Route path="/login" element={<LoginPage />} />
 
-          {/* Security Gate Terminal */}
-          <Route
-            path="/gate"
-            element={
-              <ProtectedRoute allowedRoles={['super_admin', 'admin', 'guard']}>
-                <GateViewPage />
-              </ProtectedRoute>
-            }
-          />
+            {/* Supabase Integration Verification */}
+            <Route path="/supabase-test" element={<SupabaseTestPage />} />
 
-          {/* Visitor History & Logs */}
-          <Route
-            path="/visitors"
-            element={
-              <ProtectedRoute>
-                <VisitorsPage />
-              </ProtectedRoute>
-            }
-          />
+            {/* Operations Dashboard */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Departments Directory */}
-          <Route
-            path="/departments"
-            element={
-              <ProtectedRoute>
-                <DepartmentsPage />
-              </ProtectedRoute>
-            }
-          />
+            {/* Security Gate Terminal */}
+            <Route
+              path="/gate"
+              element={
+                <ProtectedRoute allowedRoles={['super_admin', 'admin', 'guard']}>
+                  <GateViewPage />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Staff Roles & Permissions */}
-          <Route
-            path="/staff"
-            element={
-              <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
-                <StaffPage />
-              </ProtectedRoute>
-            }
-          />
+            {/* Visitor History & Logs */}
+            <Route
+              path="/visitors"
+              element={
+                <ProtectedRoute>
+                  <VisitorsPage />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Analytics & Export Reports */}
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute allowedRoles={['super_admin', 'admin', 'guard']}>
-                <ReportsPage />
-              </ProtectedRoute>
-            }
-          />
+            {/* Departments Directory */}
+            <Route
+              path="/departments"
+              element={
+                <ProtectedRoute>
+                  <DepartmentsPage />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Emergency Crisis Manifest */}
-          <Route
-            path="/emergency"
-            element={
-              <ProtectedRoute allowedRoles={['super_admin', 'admin', 'guard']}>
-                <EvacuationPage />
-              </ProtectedRoute>
-            }
-          />
+            {/* Staff Roles & Permissions */}
+            <Route
+              path="/staff"
+              element={
+                <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
+                  <StaffPage />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Catch-all redirect */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+            {/* Analytics & Export Reports */}
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute allowedRoles={['super_admin', 'admin', 'guard']}>
+                  <ReportsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Emergency Crisis Manifest */}
+            <Route
+              path="/emergency"
+              element={
+                <ProtectedRoute allowedRoles={['super_admin', 'admin', 'guard']}>
+                  <EvacuationPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Catch-all redirect */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </LockdownProvider>
     </AuthProvider>
   );
 }

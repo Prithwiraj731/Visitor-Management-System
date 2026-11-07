@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { dashboardService, visitService } from '../services/api';
+import { useLockdown } from '../context/LockdownContext';
 import { Badge } from '../components/common/Badge';
 import {
   Users,
   ShieldCheck,
+  ShieldAlert,
   Clock,
   UserCheck,
   TrendingUp,
   ArrowUpRight,
-  Trash2
+  Trash2,
+  Sparkles
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -27,6 +30,7 @@ export const DashboardPage = () => {
   const [trends, setTrends] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedBadge, setSelectedBadge] = useState(null);
+  const { isLockdown, initiateLockdown, disengageLockdown } = useLockdown();
 
   const loadData = async () => {
     try {
@@ -77,6 +81,74 @@ export const DashboardPage = () => {
       title="Security & Operations Dashboard"
       subtitle="Real-time facility access statistics, active headcount, and visitor flow trends"
     >
+      {/* Enterprise Security Sentinel & DEFCON Controls Bar */}
+      <div className={`p-4 vms-chamfer border mb-8 flex flex-col md:flex-row items-center justify-between gap-4 transition-all ${
+        isLockdown 
+          ? 'bg-red-950/80 border-red-500 text-white shadow-2xl shadow-red-950' 
+          : 'bg-[#0C111B] border-white/10 text-white'
+      }`}>
+        <div className="flex items-center gap-3.5">
+          <div className={`w-10 h-10 flex items-center justify-center shrink-0 vms-chamfer-sm ${
+            isLockdown ? 'bg-red-600 text-white animate-pulse' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+          }`}>
+            {isLockdown ? <ShieldAlert className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[10px] font-bold tracking-widest uppercase text-white/60">
+                Facility Security Status
+              </span>
+              <span className={`px-2 py-0.5 text-[10px] font-mono font-bold ${
+                isLockdown ? 'bg-red-500 text-white animate-pulse' : 'bg-emerald-500/20 text-emerald-300'
+              }`}>
+                {isLockdown ? 'DEFCON 1: SITE LOCKDOWN ACTIVE' : 'PERIMETER SECURE · NORMAL ACCESS'}
+              </span>
+            </div>
+            <p className="text-xs text-white/70 mt-0.5">
+              {isLockdown 
+                ? 'All access gates halted. Public self-registration kiosks are locked. Evacuation manifest ready.'
+                : 'Optical gate scanners active. AI Security Copilot Sentinel standing by.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 w-full md:w-auto justify-end">
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('open-sentinel-command-bar'))}
+            className="vms-btn bg-white/5 hover:bg-amber-400/20 border border-white/10 hover:border-amber-400 text-xs py-2 px-3 text-white font-mono flex items-center gap-1.5"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>Sentinel AI (Ctrl+K)</span>
+          </button>
+
+          {isLockdown ? (
+            <button
+              onClick={() => {
+                if (window.confirm('Disengage DEFCON 1 Site Lockdown and restore normal access?')) {
+                  disengageLockdown();
+                }
+              }}
+              className="vms-btn bg-emerald-500 hover:bg-emerald-400 text-[#07090F] font-bold text-xs py-2 px-4 shadow-lg"
+            >
+              DISENGAGE LOCKDOWN
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                const reason = window.prompt('Enter reason for facility emergency lockdown:', 'Perimeter security incident');
+                if (reason) {
+                  initiateLockdown(reason);
+                }
+              }}
+              className="vms-btn bg-red-600 hover:bg-red-500 text-white font-bold text-xs py-2 px-4 shadow-lg shadow-red-900/40 flex items-center gap-1.5"
+            >
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>TRIGGER DEFCON 1</span>
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Top 4 KPI Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {/* Currently Inside */}

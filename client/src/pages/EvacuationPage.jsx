@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { visitService } from '../services/api';
+import { useLockdown } from '../context/LockdownContext';
 import { Button } from '../components/common/Button';
 import {
   Printer,
@@ -8,7 +9,9 @@ import {
   ShieldAlert,
   Clock,
   CheckCircle2,
-  Siren
+  Siren,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 
 export const EvacuationPage = () => {
@@ -16,6 +19,7 @@ export const EvacuationPage = () => {
   const [totalInside, setTotalInside] = useState(0);
   const [loading, setLoading] = useState(true);
   const [timestamp, setTimestamp] = useState(new Date());
+  const { isLockdown, lockdownReason, initiateLockdown, disengageLockdown, isMuted, toggleMute } = useLockdown();
 
   const loadManifest = async () => {
     try {
@@ -47,7 +51,41 @@ export const EvacuationPage = () => {
       title="Emergency Evacuation Manifest"
       subtitle="Life safety emergency headcount roster of all non-employees currently inside premises (OSHA 29 CFR 1910.38)"
       action={
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          {isLockdown ? (
+            <button
+              onClick={() => {
+                if (window.confirm('Disengage DEFCON 1 Site Lockdown and restore normal access?')) {
+                  disengageLockdown();
+                }
+              }}
+              className="vms-btn bg-emerald-500 hover:bg-emerald-400 text-[#07090F] font-bold text-xs py-2 px-3 shadow-lg"
+            >
+              DISENGAGE LOCKDOWN
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                const reason = window.prompt('Enter reason for facility emergency lockdown:', 'Emergency Evacuation Protocol Activated');
+                if (reason) {
+                  initiateLockdown(reason);
+                }
+              }}
+              className="vms-btn bg-red-600 hover:bg-red-500 text-white font-bold text-xs py-2 px-3 shadow-lg flex items-center gap-1.5"
+            >
+              <ShieldAlert className="w-3.5 h-3.5" />
+              <span>TRIGGER DEFCON 1</span>
+            </button>
+          )}
+
+          <button
+            onClick={toggleMute}
+            className="p-2 bg-white/10 hover:bg-white/20 text-white vms-chamfer-sm"
+            title={isMuted ? 'Unmute Emergency Siren' : 'Mute Emergency Siren'}
+          >
+            {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4 text-amber-400" />}
+          </button>
+
           <Button variant="secondary" icon={Clock} onClick={loadManifest}>
             Refresh Live
           </Button>
@@ -57,28 +95,36 @@ export const EvacuationPage = () => {
         </div>
       }
     >
-      {/* High-Impact Solid Amber Alert Plane (Matching Landing Page Safety Section) */}
-      <div className="bg-amber-500 text-[#07090F] p-8 vms-chamfer-lg shadow-2xl mb-8 flex flex-col sm:flex-row items-center justify-between gap-6">
+      {/* High-Impact Solid Alert Plane */}
+      <div className={`p-8 vms-chamfer-lg shadow-2xl mb-8 flex flex-col sm:flex-row items-center justify-between gap-6 transition-colors ${
+        isLockdown 
+          ? 'bg-red-600 text-white ring-4 ring-red-500/50' 
+          : 'bg-amber-500 text-[#07090F]'
+      }`}>
         <div className="flex items-center gap-5">
           <div className="w-16 h-16 bg-[#07090F] text-amber-400 flex items-center justify-center shrink-0 vms-chamfer-sm">
-            <Siren className="w-9 h-9 animate-pulse" />
+            <Siren className={`w-9 h-9 ${isLockdown ? 'text-red-500 animate-bounce' : 'text-amber-400 animate-pulse'}`} />
           </div>
           <div>
             <span className="inline-block px-3 py-1 bg-[#07090F] text-amber-400 text-xs font-extrabold uppercase tracking-wider mb-2 vms-chamfer-sm">
-              OSHA Emergency Action Headcount
+              {isLockdown ? 'DEFCON 1 ACTIVE · SITE EVACUATION ORDER' : 'OSHA Emergency Action Headcount'}
             </span>
             <h2 className="font-display text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
               {totalInside} {totalInside === 1 ? 'PERSON' : 'PERSONS'} CURRENTLY ON PREMISES
             </h2>
-            <p className="text-sm font-semibold text-[#07090F]/80 mt-1">
-              Live verified checkpoint roster as of {timestamp.toLocaleTimeString('en-GB')}
+            <p className={`text-sm font-semibold mt-1 ${isLockdown ? 'text-white/90' : 'text-[#07090F]/80'}`}>
+              {isLockdown ? `Directive: ${lockdownReason}` : `Live verified checkpoint roster as of ${timestamp.toLocaleTimeString('en-GB')}`}
             </p>
           </div>
         </div>
 
         <div className="bg-[#07090F] text-amber-400 p-6 text-center sm:text-right vms-chamfer-sm shrink-0 min-w-[160px]">
-          <span className="font-display block text-5xl font-extrabold tabular-nums leading-none">{totalInside}</span>
-          <span className="text-[11px] text-white/70 uppercase font-bold tracking-wider mt-1 block">Accountability Roster</span>
+          <span className={`font-display block text-5xl font-extrabold tabular-nums leading-none ${isLockdown ? 'text-red-500' : 'text-amber-400'}`}>
+            {totalInside}
+          </span>
+          <span className="text-[11px] text-white/70 uppercase font-bold tracking-wider mt-1 block">
+            {isLockdown ? 'CRISIS HEADCOUNT' : 'Accountability Roster'}
+          </span>
         </div>
       </div>
 

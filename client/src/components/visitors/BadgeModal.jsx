@@ -69,8 +69,8 @@ export const BadgeModal = ({ isOpen, visit, onClose }) => {
           <title>Visitor Pass - ${visitor.fullName || 'Guest'}</title>
           <style>
             @page {
-              size: A4 portrait;
-              margin: 15mm;
+              size: auto;
+              margin: 10mm;
             }
             * {
               box-sizing: border-box;
@@ -79,24 +79,25 @@ export const BadgeModal = ({ isOpen, visit, onClose }) => {
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
             }
-            body {
+            html, body {
+              width: 100%;
+              height: auto !important;
+              margin: 0 !important;
+              padding: 0 !important;
               font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-              background: #ffffff;
+              background: #ffffff !important;
               color: #0F172A;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: flex-start;
-              padding: 20px 0;
             }
             .pass-card {
-              width: 100%;
-              max-width: 420px;
+              width: 380px;
+              margin: 0 auto;
               border: 2px solid #0F172A;
-              border-radius: 18px;
+              border-radius: 16px;
               overflow: hidden;
               background: #ffffff;
               box-shadow: none;
+              page-break-inside: avoid;
+              break-inside: avoid;
             }
             .pass-header {
               background: #0C111B !important;
@@ -237,10 +238,10 @@ export const BadgeModal = ({ isOpen, visit, onClose }) => {
       iframe = document.createElement('iframe');
       iframe.id = 'vms-print-frame';
       iframe.style.position = 'fixed';
-      iframe.style.right = '0';
-      iframe.style.bottom = '0';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
+      iframe.style.top = '-9999px';
+      iframe.style.left = '-9999px';
+      iframe.style.width = '800px';
+      iframe.style.height = '1000px';
       iframe.style.border = '0';
       document.body.appendChild(iframe);
     }
@@ -250,10 +251,18 @@ export const BadgeModal = ({ isOpen, visit, onClose }) => {
     doc.write(printHtml);
     doc.close();
 
-    setTimeout(() => {
+    const triggerPrint = () => {
       iframe.contentWindow.focus();
       iframe.contentWindow.print();
-    }, 250);
+    };
+
+    const qrImg = iframe.contentWindow.document.querySelector('img');
+    if (qrImg && !qrImg.complete) {
+      qrImg.onload = () => setTimeout(triggerPrint, 100);
+      qrImg.onerror = () => setTimeout(triggerPrint, 100);
+    } else {
+      setTimeout(triggerPrint, 150);
+    }
   };
 
   const handleAdmit = async () => {

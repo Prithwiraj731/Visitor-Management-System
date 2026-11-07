@@ -3,6 +3,7 @@ import { PageWrapper } from '../components/layout/PageWrapper';
 import { visitService } from '../services/api';
 import { Badge } from '../components/common/Badge';
 import { BadgeModal } from '../components/visitors/BadgeModal';
+import { WebcamScannerModal } from '../components/gate/WebcamScannerModal';
 import {
   ShieldCheck,
   Search,
@@ -10,7 +11,9 @@ import {
   LogOut,
   Printer,
   Clock,
-  Phone
+  Phone,
+  Camera,
+  Sparkles
 } from 'lucide-react';
 
 export const GateViewPage = () => {
@@ -25,6 +28,13 @@ export const GateViewPage = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedBadge, setSelectedBadge] = useState(null);
   const [processingId, setProcessingId] = useState(null);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
+
+  useEffect(() => {
+    const handleScannerTrigger = () => setIsScannerOpen(true);
+    window.addEventListener('open-webcam-scanner', handleScannerTrigger);
+    return () => window.removeEventListener('open-webcam-scanner', handleScannerTrigger);
+  }, []);
 
   const loadTodayVisits = async () => {
     try {
@@ -164,21 +174,32 @@ export const GateViewPage = () => {
       </div>
 
       {/* Controls Bar: Search & Status Filter Tabs */}
-      <div className="bg-[#0C111B] p-4 vms-chamfer border border-white/10 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-        {/* Search Input */}
-        <div className="relative w-full sm:w-96">
-          <Search className="w-4 h-4 text-white/40 absolute left-3.5 top-3" />
-          <input
-            type="text"
-            placeholder="Search visitor name, phone, company, badge..."
-            className="w-full pl-10 pr-4 py-2 text-sm text-white placeholder-white/30 bg-[#07090F] border border-white/15 vms-chamfer-sm focus:border-amber-400 focus:outline-none transition-colors"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      <div className="bg-[#0C111B] p-4 vms-chamfer border border-white/10 mb-8 flex flex-col lg:flex-row items-center justify-between gap-4">
+        {/* Left: Search Input & Optical Scanner Action */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+          <div className="relative w-full sm:w-80">
+            <Search className="w-4 h-4 text-white/40 absolute left-3.5 top-3" />
+            <input
+              type="text"
+              placeholder="Search visitor, phone, company, badge..."
+              className="w-full pl-10 pr-4 py-2 text-sm text-white placeholder-white/30 bg-[#07090F] border border-white/15 vms-chamfer-sm focus:border-amber-400 focus:outline-none transition-colors"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <button
+            onClick={() => setIsScannerOpen(true)}
+            className="w-full sm:w-auto vms-btn vms-btn-amber text-xs py-2 px-4 font-bold flex items-center justify-center gap-2 group shadow-lg shadow-amber-500/10 shrink-0"
+          >
+            <Camera className="w-4 h-4 text-[#07090F] group-hover:scale-110 transition-transform" />
+            <span>Live Optical Scanner</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-600 animate-ping" />
+          </button>
         </div>
 
         {/* Filter Pills */}
-        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-1 lg:pb-0">
           {[
             { id: 'all', label: 'All Today' },
             { id: 'inside', label: 'Inside Premises' },
@@ -296,6 +317,15 @@ export const GateViewPage = () => {
         isOpen={!!selectedBadge}
         visit={selectedBadge}
         onClose={() => setSelectedBadge(null)}
+      />
+
+      {/* Live Optical Webcam Scanner Modal */}
+      <WebcamScannerModal
+        isOpen={isScannerOpen}
+        onClose={() => setIsScannerOpen(false)}
+        onVisitorAdmitted={() => {
+          loadTodayVisits();
+        }}
       />
     </PageWrapper>
   );

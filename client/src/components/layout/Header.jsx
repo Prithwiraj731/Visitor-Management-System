@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Bell, AlertTriangle, Clock } from 'lucide-react';
+import { Menu, Bell, AlertTriangle, Clock, Sparkles, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useLockdown } from '../../context/LockdownContext';
 import { notificationService } from '../../services/api';
 import { Link } from 'react-router-dom';
 
 export const Header = ({ setMobileOpen }) => {
   const { user, hasRole } = useAuth();
+  const { isLockdown } = useLockdown();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -15,6 +17,10 @@ export const Header = ({ setMobileOpen }) => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const triggerSentinel = () => {
+    window.dispatchEvent(new CustomEvent('open-sentinel-command-bar'));
+  };
 
   const loadNotifications = async () => {
     try {
@@ -65,7 +71,28 @@ export const Header = ({ setMobileOpen }) => {
       </div>
 
       {/* Right: Actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        {/* DEFCON 1 Warning Beacon (when active) */}
+        {isLockdown && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-red-600 text-white font-mono text-[11px] font-bold animate-pulse">
+            <ShieldAlert className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">DEFCON 1 ACTIVE</span>
+          </div>
+        )}
+
+        {/* Sentinel AI Security Copilot Trigger */}
+        <button
+          onClick={triggerSentinel}
+          title="Open Sentinel AI Copilot (Ctrl + K)"
+          className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-white/5 hover:bg-amber-400/20 border border-white/10 hover:border-amber-400/50 text-white text-xs font-mono font-medium vms-chamfer-sm transition-all group"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+          <span className="hidden md:inline font-bold">Sentinel AI</span>
+          <kbd className="hidden sm:inline-block px-1.5 py-0.2 bg-black/40 border border-white/20 text-[10px] text-white/60 font-mono">
+            Ctrl+K
+          </kbd>
+        </button>
+
         {/* Emergency Evacuation Shortcut Button */}
         {(hasRole('super_admin', 'admin', 'guard')) && (
           <Link
