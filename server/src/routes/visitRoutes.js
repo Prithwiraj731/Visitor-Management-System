@@ -8,7 +8,8 @@ import {
   approveVisit,
   rejectVisit,
   getEmergencyManifest,
-  getVisitPass
+  getVisitPass,
+  deleteVisit
 } from '../controllers/visitController.js';
 import { authenticate } from '../middleware/auth.js';
 import { authorize } from '../middleware/rbac.js';
@@ -30,6 +31,7 @@ router.patch('/:id/check-in', authorize('super_admin', 'admin', 'guard'), checkI
 router.patch('/:id/check-out', authorize('super_admin', 'admin', 'guard'), checkOutVisit);
 router.patch('/:id/approve', approveVisit);
 router.patch('/:id/reject', rejectVisit);
+router.delete('/:id', authorize('super_admin', 'admin'), deleteVisit);
 
 export default router;
 

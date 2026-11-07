@@ -465,3 +465,57 @@ export const getEmergencyManifest = async (req, res, next) => {
   }
 };
 
+export const deleteVisit = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const visit = await Visit.findByPk(id, {
+      include: [{ model: Visitor, as: 'visitor' }]
+    });
+
+    if (!visit) {
+      return res.status(404).json({ success: false, message: 'Visit record not found' });
+    }
+
+    // Safety guard: cannot delete an active visitor who is currently inside the building
+    if (visit.status === 'checked_in') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete an active visit. The visitor must be checked out first.'
+      });
+    }
+
+    const badgeNumber = visit.badgeNumber;
+    const visitorName = visit.visitor?.fullName;
+    const visitorId = visit.visitorId;
+
+    // Delete associated notifications
+    await Notification.destroy({ where: { visitId: id } });
+
+    // Delete visit record
+    await visit.destroy();
+
+    // If visitor profile has no other visits, clean up visitor record
+    if (visitorId) {
+      const remainingVisits = await Visit.count({ where: { visitorId } });
+      if (remainingVisits === 0) {
+        await Visitor.destroy({ where: { id: visitorId } });
+      }
+    }
+
+    await logAudit({
+      req,
+      action: 'VISIT_DELETED',
+      entityType: 'Visit',
+      entityId: id,
+      details: { badgeNumber, visitor: visitorName }
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Visitor record deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

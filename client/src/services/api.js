@@ -69,6 +69,7 @@ export const visitService = {
   checkOut: (id) => api.patch(`/visits/${id}/check-out`),
   approve: (id) => api.patch(`/visits/${id}/approve`),
   reject: (id, reason) => api.patch(`/visits/${id}/reject`, { reason }),
+  deleteVisit: (id) => api.delete(`/visits/${id}`),
   getEmergencyManifest: () => api.get('/visits/emergency'),
 };
 

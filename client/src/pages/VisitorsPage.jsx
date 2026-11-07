@@ -9,7 +9,8 @@ import {
   Download,
   ChevronLeft,
   ChevronRight,
-  Phone
+  Phone,
+  Trash2
 } from 'lucide-react';
 
 export const VisitorsPage = () => {
@@ -37,6 +38,20 @@ export const VisitorsPage = () => {
       console.error('Failed to load visits', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteVisit = async (id, visitorName) => {
+    const confirmed = window.confirm(
+      `Permanently delete the checked-out record for "${visitorName || 'Visitor'}"? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await visitService.deleteVisit(id);
+      await loadVisits(meta.page);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete record');
     }
   };
 
@@ -142,12 +157,23 @@ export const VisitorsPage = () => {
                       <Badge status={v.status} />
                     </td>
                     <td className="px-5 py-4 text-right">
-                      <button
-                        onClick={() => setSelectedBadge(v)}
-                        className="text-amber-400 hover:text-amber-300 font-bold hover:underline"
-                      >
-                        Badge
-                      </button>
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setSelectedBadge(v)}
+                          className="text-amber-400 hover:text-amber-300 font-bold hover:underline"
+                        >
+                          Badge
+                        </button>
+                        {v.status === 'checked_out' && (
+                          <button
+                            onClick={() => handleDeleteVisit(v.id, v.visitor?.fullName)}
+                            title="Delete checked-out record"
+                            className="p-1.5 text-rose-400/80 hover:text-rose-400 hover:bg-rose-500/10 vms-chamfer-sm transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))

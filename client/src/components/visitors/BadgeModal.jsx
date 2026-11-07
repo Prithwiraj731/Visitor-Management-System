@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
-import { Printer, Building, Shield, Clock, User, CheckCircle2, AlertCircle, LogIn } from 'lucide-react';
+import { Printer, Building, Shield, Clock, User, CheckCircle2, AlertCircle, LogIn, Trash2 } from 'lucide-react';
 import { visitService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
 export const BadgeModal = ({ isOpen, visit, onClose }) => {
   const [currentVisit, setCurrentVisit] = useState(visit);
   const [admitting, setAdmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { user } = useAuth();
 
   // Keep currentVisit in sync when parent passes a new visit
@@ -277,6 +278,24 @@ export const BadgeModal = ({ isOpen, visit, onClose }) => {
   const isCheckedIn = currentVisit.status === 'checked_in';
   const isCheckedOut = currentVisit.status === 'checked_out';
   const canAdmit = (user?.role === 'admin' || user?.role === 'super_admin' || user?.role === 'guard') && isPending;
+  const canDelete = isCheckedOut && (user?.role === 'admin' || user?.role === 'super_admin');
+
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      `Permanently delete the checked-out record for "${visitor.fullName || 'Visitor'}"? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setDeleting(true);
+    try {
+      await visitService.deleteVisit(currentVisit.id);
+      onClose();
+      window.location.reload();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete record');
+      setDeleting(false);
+    }
+  };
 
   return (
     <Modal
@@ -438,6 +457,18 @@ export const BadgeModal = ({ isOpen, visit, onClose }) => {
                 className="bg-emerald-500 hover:bg-emerald-400 text-[#07090F] font-bold"
               >
                 Approve & Admit
+              </Button>
+            )}
+
+            {canDelete && (
+              <Button
+                variant="outline"
+                icon={Trash2}
+                onClick={handleDelete}
+                loading={deleting}
+                className="text-rose-400 border-rose-500/40 hover:bg-rose-500/20"
+              >
+                Delete Record
               </Button>
             )}
 

@@ -8,7 +8,8 @@ import {
   Clock,
   UserCheck,
   TrendingUp,
-  ArrowUpRight
+  ArrowUpRight,
+  Trash2
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -48,6 +49,20 @@ export const DashboardPage = () => {
       await loadData();
     } catch (err) {
       alert(err.response?.data?.message || 'Check-in failed');
+    }
+  };
+
+  const handleDeleteVisit = async (id, visitorName) => {
+    const confirmed = window.confirm(
+      `Permanently delete the checked-out record for "${visitorName || 'Visitor'}"? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await visitService.deleteVisit(id);
+      await loadData();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to delete record');
     }
   };
 
@@ -266,6 +281,15 @@ export const DashboardPage = () => {
                         >
                           View Pass
                         </button>
+                        {v.status === 'checked_out' && (
+                          <button
+                            onClick={() => handleDeleteVisit(v.id, v.visitor?.fullName)}
+                            title="Delete checked-out visitor record"
+                            className="p-1.5 text-rose-400/80 hover:text-rose-400 hover:bg-rose-500/10 vms-chamfer-sm transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
