@@ -422,3 +422,4 @@ export const PassPage = () => {
 };
 
 export default PassPage;
+
