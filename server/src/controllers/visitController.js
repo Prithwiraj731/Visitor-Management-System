@@ -145,7 +145,7 @@ export const createVisit = async (req, res, next) => {
 
 export const getVisits = async (req, res, next) => {
   try {
-    const { status, departmentId, hostId, search, fromDate, toDate, page = 1, limit = 20 } = req.query;
+    const { status, departmentId, hostId, search, badgeNumber, fromDate, toDate, page = 1, limit = 20 } = req.query;
     const where = {};
     const visitorWhere = {};
 
@@ -154,6 +154,10 @@ export const getVisits = async (req, res, next) => {
       where.hostId = req.user.id;
     } else if (hostId) {
       where.hostId = hostId;
+    }
+
+    if (badgeNumber) {
+      where.badgeNumber = { [Op.like]: `%${badgeNumber.trim()}%` };
     }
 
     if (status) {
@@ -170,12 +174,17 @@ export const getVisits = async (req, res, next) => {
       };
     }
 
-    if (search) {
-      visitorWhere[Op.or] = [
-        { fullName: { [Op.like]: `%${search}%` } },
-        { phone: { [Op.like]: `%${search}%` } },
-        { company: { [Op.like]: `%${search}%` } }
-      ];
+    if (search && !badgeNumber) {
+      const trimmedSearch = search.trim();
+      if (/^VMS-/i.test(trimmedSearch)) {
+        where.badgeNumber = { [Op.like]: `%${trimmedSearch}%` };
+      } else {
+        visitorWhere[Op.or] = [
+          { fullName: { [Op.like]: `%${trimmedSearch}%` } },
+          { phone: { [Op.like]: `%${trimmedSearch}%` } },
+          { company: { [Op.like]: `%${trimmedSearch}%` } }
+        ];
+      }
     }
 
     const offset = (Math.max(1, parseInt(page)) - 1) * parseInt(limit);
@@ -421,7 +430,11 @@ export const rejectVisit = async (req, res, next) => {
 export const getVisitPass = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const visit = await Visit.findByPk(id, {
+    const isBadge = typeof id === 'string' && (id.startsWith('VMS-') || id.includes('VMS-'));
+    const where = isBadge ? { badgeNumber: id } : { id };
+
+    const visit = await Visit.findOne({
+      where,
       include: [
         { model: Visitor, as: 'visitor' },
         { model: User, as: 'host', attributes: ['id', 'fullName', 'email', 'phone'] },

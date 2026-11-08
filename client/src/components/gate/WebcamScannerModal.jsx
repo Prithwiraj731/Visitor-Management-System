@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import jsQR from 'jsqr';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
-import { Camera, ShieldCheck, AlertCircle, RefreshCw, Volume2, VolumeX, CheckCircle2, User, Building, LogIn, LogOut, X } from 'lucide-react';
+import { Camera, ShieldCheck, AlertCircle, RefreshCw, Volume2, VolumeX, CheckCircle2, User, Building, LogIn, LogOut, X, FlipHorizontal } from 'lucide-react';
 import { playAccessGranted, playAccessDenied, playScannerBeep } from '../../utils/soundEffects';
 import { visitService } from '../../services/api';
 
@@ -14,6 +14,7 @@ export const WebcamScannerModal = ({ isOpen, onClose, onVisitorAdmitted }) => {
 
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState(null);
+  const [facingMode, setFacingMode] = useState('environment'); // 'environment' | 'user'
   const [manualCode, setManualCode] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [scanResult, setScanResult] = useState(null); // { type: 'success' | 'warning' | 'error', message, visit }
@@ -22,7 +23,7 @@ export const WebcamScannerModal = ({ isOpen, onClose, onVisitorAdmitted }) => {
   // Initialize Camera
   useEffect(() => {
     if (isOpen) {
-      startCamera();
+      startCamera(facingMode);
     } else {
       stopCamera();
       setScanResult(null);
@@ -33,36 +34,68 @@ export const WebcamScannerModal = ({ isOpen, onClose, onVisitorAdmitted }) => {
     };
   }, [isOpen]);
 
-  const startCamera = async () => {
+  const startCamera = async (mode = facingMode) => {
     setCameraError(null);
     setScanResult(null);
 
+    // Clean up any lingering stream tracks
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        throw new Error('Webcam video capture is not supported in this browser.');
+        throw new Error('Webcam video capture is not supported in this browser environment.');
       }
 
-      const stream = await navigator.mediaDevices.getUserMedia({
+      const constraints = {
         video: {
-          facingMode: { ideal: 'environment' },
+          facingMode: { ideal: mode },
           width: { ideal: 1280 },
           height: { ideal: 720 }
         },
         audio: false
-      });
+      };
 
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.setAttribute('playsinline', 'true');
+        videoRef.current.setAttribute('webkit-playsinline', 'true');
         await videoRef.current.play();
         setCameraActive(true);
         startScanningLoop();
       }
     } catch (err) {
-      console.warn('Camera access denied or unavailable:', err);
-      setCameraError(err.message || 'Camera access was blocked. You can use manual badge verification below.');
-      setCameraActive(false);
+      console.warn('Camera access error:', err);
+      // Fallback try without facingMode constraints in case mobile camera throws overconstrained error
+      try {
+        const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        streamRef.current = fallbackStream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = fallbackStream;
+          videoRef.current.setAttribute('playsinline', 'true');
+          await videoRef.current.play();
+          setCameraActive(true);
+          startScanningLoop();
+          return;
+        }
+      } catch (fallbackErr) {
+        setCameraError(err.message || 'Camera access was blocked. Check browser permissions or use manual badge entry.');
+        setCameraActive(false);
+      }
+    }
+  };
+
+  const toggleCameraFacing = async () => {
+    const nextMode = facingMode === 'environment' ? 'user' : 'environment';
+    setFacingMode(nextMode);
+    if (cameraActive) {
+      stopCamera();
+      await startCamera(nextMode);
     }
   };
 
@@ -78,27 +111,80 @@ export const WebcamScannerModal = ({ isOpen, onClose, onVisitorAdmitted }) => {
     setCameraActive(false);
   };
 
-  // Continuous Frame Analysis Loop using jsQR
+  // High-performance Frame Analysis Loop with BarcodeDetector + jsQR downscaling
   const startScanningLoop = () => {
-    const scan = () => {
-      if (videoRef.current && videoRef.current.readyState === videoRef.current.HAVE_ENOUGH_DATA) {
-        const video = videoRef.current;
-        const canvas = canvasRef.current || document.createElement('canvas');
-        canvasRef.current = canvas;
+    if (scanLoopRef.current) {
+      cancelAnimationFrame(scanLoopRef.current);
+      scanLoopRef.current = null;
+    }
 
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    // Check if native BarcodeDetector is available in modern mobile browsers
+    let nativeDetector = null;
+    if ('BarcodeDetector' in window) {
+      try {
+        nativeDetector = new window.BarcodeDetector({ formats: ['qr_code'] });
+      } catch {
+        nativeDetector = null;
+      }
+    }
 
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        const qrCode = jsQR(imageData.data, imageData.width, imageData.height, {
-          inversionAttempts: 'dontInvert'
-        });
+    let lastScanTime = 0;
+    let isDetecting = false;
 
-        if (qrCode && qrCode.data) {
-          handleDetectedQr(qrCode.data);
-          return; // Pause loop during processing
+    const scan = async (timestamp) => {
+      const video = videoRef.current;
+      if (video && video.readyState >= 2 && !isDetecting) {
+        // Run optical analysis every 75ms (~13-14 FPS) to prevent mobile thermal throttle while remaining instantaneous
+        if (timestamp - lastScanTime > 75) {
+          lastScanTime = timestamp;
+          const vw = video.videoWidth;
+          const vh = video.videoHeight;
+
+          if (vw > 0 && vh > 0) {
+            // Option A: Hardware-accelerated BarcodeDetector (Android Chrome & iOS 17+)
+            if (nativeDetector) {
+              isDetecting = true;
+              try {
+                const barcodes = await nativeDetector.detect(video);
+                if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
+                  handleDetectedQr(barcodes[0].rawValue);
+                  isDetecting = false;
+                  return; // Halt loop on match
+                }
+              } catch {
+                // fall through to jsQR
+              }
+              isDetecting = false;
+            }
+
+            // Option B: Universal jsQR with adaptive downscaled canvas & attemptBoth inversion
+            const canvas = canvasRef.current || document.createElement('canvas');
+            canvasRef.current = canvas;
+
+            // Target max dimension 640px for 5ms decode latency on mobile
+            const maxDimension = 640;
+            const scale = Math.min(1, maxDimension / Math.max(vw, vh));
+            const targetW = Math.max(1, Math.floor(vw * scale));
+            const targetH = Math.max(1, Math.floor(vh * scale));
+
+            if (canvas.width !== targetW || canvas.height !== targetH) {
+              canvas.width = targetW;
+              canvas.height = targetH;
+            }
+
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            ctx.drawImage(video, 0, 0, targetW, targetH);
+
+            const imageData = ctx.getImageData(0, 0, targetW, targetH);
+            const qrCode = jsQR(imageData.data, imageData.width, imageData.height, {
+              inversionAttempts: 'attemptBoth'
+            });
+
+            if (qrCode && qrCode.data) {
+              handleDetectedQr(qrCode.data);
+              return; // Halt loop on match
+            }
+          }
         }
       }
 
@@ -109,12 +195,24 @@ export const WebcamScannerModal = ({ isOpen, onClose, onVisitorAdmitted }) => {
   };
 
   const parseBadgePayload = (rawData) => {
+    if (!rawData) return '';
     try {
       const parsed = JSON.parse(rawData);
-      return parsed.vmsBadge || parsed.badgeNumber || parsed.badge || rawData;
+      if (typeof parsed === 'object' && parsed !== null) {
+        const extracted = parsed.vmsBadge || parsed.badgeNumber || parsed.badge || parsed.id;
+        if (extracted) return String(extracted).trim();
+      }
     } catch {
-      return rawData.trim();
+      // not JSON string
     }
+
+    // Extract VMS badge format like VMS-20261108-1234 from text or URLs
+    const vmsMatch = String(rawData).match(/VMS-\d{8}-\d+/i);
+    if (vmsMatch) {
+      return vmsMatch[0].toUpperCase();
+    }
+
+    return String(rawData).trim();
   };
 
   const handleDetectedQr = async (rawData) => {
@@ -126,9 +224,33 @@ export const WebcamScannerModal = ({ isOpen, onClose, onVisitorAdmitted }) => {
     const badgeSerial = parseBadgePayload(rawData);
 
     try {
-      // Find visit by serial in backend
-      const res = await visitService.getVisits({ search: badgeSerial, limit: 1 });
-      const visit = res.data?.data?.[0];
+      // Triple-fallback lookup:
+      // 1. Direct pass endpoint by badgeNumber
+      let visit = null;
+      try {
+        const passRes = await visitService.getPass(badgeSerial);
+        if (passRes.data?.data) {
+          visit = passRes.data.data;
+        }
+      } catch {
+        // Fallback to query
+      }
+
+      // 2. Query visits by badgeNumber
+      if (!visit) {
+        try {
+          const res = await visitService.getVisits({ badgeNumber: badgeSerial, limit: 1 });
+          visit = res.data?.data?.[0];
+        } catch {
+          // Fallback to search
+        }
+      }
+
+      // 3. Query visits by general search
+      if (!visit) {
+        const res = await visitService.getVisits({ search: badgeSerial, limit: 1 });
+        visit = res.data?.data?.[0];
+      }
 
       if (!visit) {
         if (soundEnabled) playAccessDenied();
@@ -232,11 +354,14 @@ export const WebcamScannerModal = ({ isOpen, onClose, onVisitorAdmitted }) => {
       maxWidth="max-w-2xl"
     >
       <div className="flex flex-col gap-4">
-        {/* Camera Viewport with Tactical HUD */}
-        <div className="relative w-full aspect-video bg-[#07090F] border-2 border-white/20 vms-chamfer overflow-hidden flex items-center justify-center">
+        {/* Camera Viewport with Tactical HUD - Spacious mobile height & adaptive ratio */}
+        <div className="relative w-full h-[380px] xs:h-[420px] sm:h-[460px] md:h-[420px] bg-[#07090F] border-2 border-white/20 vms-chamfer overflow-hidden flex items-center justify-center">
           {/* Real Video Stream */}
           <video
             ref={videoRef}
+            autoPlay
+            playsInline
+            muted
             className={`w-full h-full object-cover ${cameraActive ? 'block' : 'hidden'}`}
           />
 
@@ -245,49 +370,67 @@ export const WebcamScannerModal = ({ isOpen, onClose, onVisitorAdmitted }) => {
 
           {/* Tactical Target Overlay (when camera is streaming) */}
           {cameraActive && !scanResult && (
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              {/* Sweeping Laser Line */}
-              <div className="absolute inset-x-8 h-0.5 bg-cyan-400 shadow-[0_0_15px_#22d3ee] animate-[bounce_2.5s_infinite]" />
-
-              {/* Targeting Reticle Frame */}
-              <div className="relative w-64 h-64 border border-cyan-400/40 rounded-xl">
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-4">
+              {/* Targeting Reticle Frame (scaled to mobile) */}
+              <div className="relative w-52 h-52 sm:w-64 sm:h-64 border border-cyan-400/40 rounded-xl overflow-hidden flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.15)]">
                 {/* 4 Corner Brackets */}
-                <span className="absolute -top-1 -left-1 w-6 h-6 border-t-2 border-l-2 border-cyan-400" />
-                <span className="absolute -top-1 -right-1 w-6 h-6 border-t-2 border-r-2 border-cyan-400" />
-                <span className="absolute -bottom-1 -left-1 w-6 h-6 border-b-2 border-l-2 border-cyan-400" />
-                <span className="absolute -bottom-1 -right-1 w-6 h-6 border-b-2 border-r-2 border-cyan-400" />
+                <span className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-cyan-400" />
+                <span className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-cyan-400" />
+                <span className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-cyan-400" />
+                <span className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-cyan-400" />
                 
+                {/* Sweeping Laser Line strictly inside reticle */}
+                <div className="absolute inset-x-2 h-0.5 bg-cyan-400 shadow-[0_0_15px_#22d3ee] animate-[bounce_2.5s_infinite]" />
+
                 {/* Center crosshair */}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-4 h-4 border border-cyan-400/30 rounded-full animate-ping" />
-                </div>
+                <div className="w-4 h-4 border border-cyan-400/30 rounded-full animate-ping" />
               </div>
 
-              {/* Status Header */}
-              <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm border border-cyan-500/30 px-3 py-1 rounded text-[11px] font-mono text-cyan-400 flex items-center gap-2">
+              {/* Status Header Overlay */}
+              <div className="absolute top-3 left-3 bg-black/75 backdrop-blur-md border border-cyan-500/30 px-2.5 py-1 rounded text-[10px] sm:text-[11px] font-mono text-cyan-400 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                <span>OPTICAL_SENSOR: ACTIVE (SCANNING)</span>
+                <span>OPTICAL_DECODER: SCANNING</span>
               </div>
+
+              {/* Camera Switch / Flip Button for Mobile */}
+              <button
+                type="button"
+                onClick={toggleCameraFacing}
+                className="pointer-events-auto absolute top-3 right-3 bg-black/75 backdrop-blur-md hover:bg-black/95 border border-white/20 hover:border-cyan-400 px-2.5 py-1 rounded text-[11px] font-mono text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Switch Camera (Front / Rear)"
+              >
+                <RefreshCw className="w-3 h-3 text-cyan-400" />
+                <span>{facingMode === 'environment' ? 'Rear Cam' : 'Front Cam'}</span>
+              </button>
             </div>
           )}
 
-          {/* Camera Error / Blocked State */}
+          {/* Camera Error / Standby State */}
           {(!cameraActive && !isProcessing && !scanResult) && (
             <div className="p-8 text-center flex flex-col items-center max-w-md">
               <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mb-3">
                 <Camera className="w-6 h-6" />
               </div>
-              <h4 className="font-display font-bold text-base text-white">Camera Standby / Permission Required</h4>
+              <h4 className="font-display font-bold text-base text-white">Camera Standby / Authorization</h4>
               <p className="text-xs text-white/60 mt-1 leading-relaxed">
-                {cameraError || 'Ensure camera permissions are enabled in your browser, or verify credentials via the manual terminal below.'}
+                {cameraError || 'Ensure camera permissions are allowed in your mobile browser, or verify passes manually below.'}
               </p>
-              <button
-                onClick={startCamera}
-                className="vms-btn vms-btn-amber text-xs py-2 px-4 mt-4 font-bold flex items-center gap-2"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Initialize Camera Stream</span>
-              </button>
+              <div className="flex gap-2 mt-4">
+                <button
+                  onClick={() => startCamera(facingMode)}
+                  className="vms-btn vms-btn-amber text-xs py-2 px-4 font-bold flex items-center gap-2"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Start Camera</span>
+                </button>
+                <button
+                  onClick={toggleCameraFacing}
+                  className="vms-btn vms-btn-line text-xs py-2 px-3 flex items-center gap-1.5"
+                >
+                  <FlipHorizontal className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Switch Lens</span>
+                </button>
+              </div>
             </div>
           )}
 
@@ -370,22 +513,22 @@ export const WebcamScannerModal = ({ isOpen, onClose, onVisitorAdmitted }) => {
         <div className="p-4 bg-[#0C111B] border border-white/10 vms-chamfer-sm">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-bold text-white/70 uppercase tracking-wide">
-              Manual Serial / QR Code Entry
+              Manual Serial / Pass Code Entry
             </span>
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className="text-xs text-white/50 hover:text-white flex items-center gap-1.5"
+              className="text-xs text-white/50 hover:text-white flex items-center gap-1.5 cursor-pointer"
               title="Toggle Audio Feedback"
             >
               {soundEnabled ? <Volume2 className="w-3.5 h-3.5 text-emerald-400" /> : <VolumeX className="w-3.5 h-3.5 text-rose-400" />}
-              <span>{soundEnabled ? 'Audio Chimes On' : 'Audio Muted'}</span>
+              <span>{soundEnabled ? 'Audio On' : 'Muted'}</span>
             </button>
           </div>
 
           <form onSubmit={handleManualSubmit} className="flex gap-2">
             <input
               type="text"
-              placeholder="e.g. VMS-20261106-9921 or paste QR string"
+              placeholder="e.g. VMS-20261103-1001"
               className="flex-1 px-3.5 py-2 text-xs bg-[#07090F] border border-white/15 text-white placeholder-white/30 vms-chamfer-sm focus:border-amber-400 focus:outline-none font-mono"
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value)}
@@ -407,4 +550,3 @@ export const WebcamScannerModal = ({ isOpen, onClose, onVisitorAdmitted }) => {
 };
 
 export default WebcamScannerModal;
-

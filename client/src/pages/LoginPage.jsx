@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ShieldCheck, Lock, Mail, ArrowRight, ArrowLeft, Terminal, Eye, EyeOff } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, ArrowRight, ArrowLeft, Terminal, Eye, EyeOff, KeyRound } from 'lucide-react';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -13,15 +13,13 @@ export const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Auto-fill role if clicked from Landing Page gateway
+  // Auto-suggest email hint only if directed from landing role card (passcode must always be entered manually)
   useEffect(() => {
     const roleHint = location.state?.roleHint;
     if (roleHint === 'guard') {
       setEmail('guard@vms.local');
-      setPassword('Password123!');
     } else if (roleHint === 'super_admin' || roleHint === 'admin') {
       setEmail('admin@vms.local');
-      setPassword('Password123!');
     }
   }, [location.state]);
 
@@ -37,7 +35,7 @@ export const LoginPage = () => {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please verify credentials.');
+      setError(err.response?.data?.message || 'Login failed. Please verify email and access passcode.');
     } finally {
       setLoading(false);
     }
@@ -46,12 +44,6 @@ export const LoginPage = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     executeLogin(email, password);
-  };
-
-  const handle1ClickLogin = (userEmail, userPass) => {
-    setEmail(userEmail);
-    setPassword(userPass);
-    executeLogin(userEmail, userPass);
   };
 
   return (
@@ -84,7 +76,7 @@ export const LoginPage = () => {
           <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/10">
             <div className="flex items-center gap-2 text-xs text-white/60">
               <Terminal className="w-4 h-4 text-amber-400" />
-              <span className="font-mono">AUTH_VERIFICATION_DAEMON</span>
+              <span className="font-mono">SECURE_CREDENTIAL_AUTHENTICATOR</span>
             </div>
             <span className="text-[10px] text-emerald-400 font-bold px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 vms-chamfer-sm">
               ONLINE
@@ -101,17 +93,18 @@ export const LoginPage = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-white/80 mb-2 uppercase tracking-wide">
-                Staff Corporate Identifier (Email or Role)
+                Staff Corporate Identifier (Email)
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-white/40 absolute left-3.5 top-3" />
                 <input
                   type="text"
                   required
-                  placeholder="admin@vms.local or admin"
+                  placeholder="admin@vms.local or guard@vms.local"
                   className="w-full pl-10 pr-3 py-2.5 text-sm bg-[#07090F] border border-white/15 text-white placeholder-white/30 focus:border-amber-400 focus:outline-none transition-colors vms-chamfer-sm"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="username"
                 />
               </div>
             </div>
@@ -125,15 +118,16 @@ export const LoginPage = () => {
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
-                  placeholder="Password123!"
+                  placeholder="Enter passcode"
                   className="w-full pl-10 pr-10 py-2.5 text-sm bg-[#07090F] border border-white/15 text-white placeholder-white/30 focus:border-amber-400 focus:outline-none transition-colors vms-chamfer-sm"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-3 text-white/40 hover:text-white transition-colors"
+                  className="absolute right-3 top-3 text-white/40 hover:text-white transition-colors cursor-pointer"
                   aria-label="Toggle password visibility"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -151,52 +145,41 @@ export const LoginPage = () => {
             </button>
           </form>
 
-          {/* 1-Click Evaluation Roles */}
+          {/* Secure Authorized Roles Reference (Manual Entry Only) */}
           <div className="mt-8 pt-6 border-t border-white/10">
-            <p className="text-[10px] font-bold text-white/50 uppercase tracking-wider mb-3 text-center">
-              1-Click Instant Login (No Typing Required)
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => handle1ClickLogin('admin@vms.local', 'Password123!')}
-                className="p-3 text-left bg-[#121A29] border border-white/10 hover:border-amber-400/80 transition-all vms-chamfer-sm group"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-white text-xs group-hover:text-amber-400 transition-colors">Admin</span>
-                  <span className="text-[10px] text-amber-400 font-semibold px-1.5 py-0.5 bg-amber-400/10 vms-chamfer-sm">Full System</span>
-                </div>
-                <span className="block text-[11px] text-white/50 mt-1">1-Click Sign In →</span>
-              </button>
-
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => handle1ClickLogin('guard@vms.local', 'Password123!')}
-                className="p-3 text-left bg-[#121A29] border border-white/10 hover:border-emerald-400/80 transition-all vms-chamfer-sm group"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-white text-xs group-hover:text-emerald-400 transition-colors">Guard</span>
-                  <span className="text-[10px] text-emerald-400 font-semibold px-1.5 py-0.5 bg-emerald-400/10 vms-chamfer-sm">Gate Desk</span>
-                </div>
-                <span className="block text-[11px] text-white/50 mt-1">1-Click Sign In →</span>
-              </button>
-            </div>
-
-            {/* Test Credentials Reference Card */}
-            <div className="mt-4 p-3 bg-white/[0.03] border border-white/10 vms-chamfer-sm text-[11px] text-white/60 space-y-1">
-              <div className="font-bold text-white/80 uppercase text-[10px] tracking-wider mb-1 flex items-center justify-between">
-                <span>Manual Entry Credentials:</span>
-                <span className="text-[10px] text-emerald-400 font-normal">Active & Ready</span>
+            <div className="p-3.5 bg-[#07090F] border border-white/10 vms-chamfer-sm">
+              <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-white/10">
+                <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider flex items-center gap-1.5">
+                  <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Authorized Personnel Credentials</span>
+                </span>
+                <span className="text-[10px] text-emerald-400 font-mono px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded">
+                  Manual Entry
+                </span>
               </div>
-              <div className="flex justify-between items-center py-0.5 font-mono">
-                <span className="text-amber-400">admin@vms.local</span>
-                <span className="text-white/70">Password123!</span>
-              </div>
-              <div className="flex justify-between items-center py-0.5 font-mono">
-                <span className="text-emerald-400">guard@vms.local</span>
-                <span className="text-white/70">Password123!</span>
+
+              <div className="space-y-2 text-xs">
+                {/* Admin */}
+                <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-1 p-2 bg-[#0C111B] border border-white/5 rounded">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider px-1.5 py-0.5 bg-amber-400/10 rounded">
+                      Admin
+                    </span>
+                    <span className="font-mono text-white text-xs font-semibold">admin@vms.local</span>
+                  </div>
+                  <span className="font-mono text-white/60 text-[11px] pl-2 xs:pl-0">Password123!</span>
+                </div>
+
+                {/* Guard */}
+                <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-1 p-2 bg-[#0C111B] border border-white/5 rounded">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider px-1.5 py-0.5 bg-emerald-400/10 rounded">
+                      Guard
+                    </span>
+                    <span className="font-mono text-white text-xs font-semibold">guard@vms.local</span>
+                  </div>
+                  <span className="font-mono text-white/60 text-[11px] pl-2 xs:pl-0">Password123!</span>
+                </div>
               </div>
             </div>
           </div>
