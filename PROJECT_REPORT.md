@@ -519,7 +519,7 @@ Operationally, the system introduces minimal friction. The user interface was en
 
 Functional requirements describe the concrete, observable behaviors, services, and calculations executed by the Visitor Management System. Every requirement is uniquely indexed and prioritized under MoSCoW rules.
 
-### Table 12. Functional requirements catalogue
+#### Table 12. Functional requirements catalogue
 | Requirement ID | System Capability | Formal Functional Requirement Statement | MoSCoW Priority |
 | :--- | :--- | :--- | :--- |
 | **FR-01** | User Authentication | The system shall authenticate staff and security personnel using unique corporate email addresses and salted hashed passcodes, issuing signed stateless JSON Web Tokens. | **Must Have** |
@@ -562,7 +562,7 @@ Functional requirements describe the concrete, observable behaviors, services, a
 
 Non-functional requirements specify the quality attributes, operational limits, security controls, and statutory constraints governing the system in accordance with **ISO/IEC 25010:2023** product quality standards.
 
-### Table 13. Non-functional requirements and verification targets
+#### Table 13. Non-functional requirements and verification targets
 | ID | Quality Attribute | Formal Requirement & Quantitative Target | Verification Method & Required Evidence |
 | :--- | :--- | :--- | :--- |
 | **NFR-01** | **Performance (API Latency)** | $95\%$ of read and write API operations shall respond in $< 350\text{ ms}$ under a baseline load of 50 concurrent active users. | Load testing using synthetic HTTP benchmarker; 95th percentile latency logging. |

@@ -7,6 +7,10 @@ from docx.enum.table import WD_TABLE_ALIGNMENT, WD_ALIGN_VERTICAL
 from docx.oxml import parse_xml, OxmlElement
 from docx.oxml.ns import nsdecls, qn
 
+from xml.sax.saxutils import escape
+
+bookmark_id_counter = 100
+
 def get_col_widths(num_cols, headers):
     total_w = 6.27
     header_str = " ".join(headers).lower()
@@ -16,8 +20,8 @@ def get_col_widths(num_cols, headers):
             return [1.8, 4.47]
         return [2.5, 3.77]
     elif num_cols == 3:
-        if "section no." in header_str:
-            return [1.1, 3.87, 1.3]
+        if "section no" in header_str or "section title" in header_str:
+            return [1.0, 4.17, 1.1]
         if "cost" in header_str:
             return [2.5, 1.5, 2.27]
         if "operational environment" in header_str:
@@ -56,6 +60,58 @@ def get_col_widths(num_cols, headers):
     else:
         w = total_w / num_cols
         return [w] * num_cols
+
+def get_fig_anchor(text):
+    m = re.search(r'Figure\s+(\d+)(\([ab]\))?', text, re.IGNORECASE)
+    if m:
+        num = m.group(1)
+        sub = m.group(2)
+        if sub:
+            sub_clean = sub.replace('(', '').replace(')', '').lower()
+            return f"fig_{num}{sub_clean}"
+        return f"fig_{num}"
+    return None
+
+def get_tbl_anchor(text):
+    m = re.search(r'Table\s+(\d+)', text, re.IGNORECASE)
+    if m:
+        return f"tbl_{m.group(1)}"
+    return None
+
+def get_sec_anchor(text):
+    m = re.match(r'^(?:##\s+)?(\d+)\.\s+', text)
+    if m:
+        return f"sec_{m.group(1)}"
+    return None
+
+def add_bookmark(paragraph, name):
+    global bookmark_id_counter
+    bm_id = str(bookmark_id_counter)
+    bookmark_id_counter += 1
+    bm_start = parse_xml(f'<w:bookmarkStart {nsdecls("w")} w:id="{bm_id}" w:name="{name}"/>')
+    bm_end = parse_xml(f'<w:bookmarkEnd {nsdecls("w")} w:id="{bm_id}"/>')
+    paragraph._p.insert(0, bm_start)
+    paragraph._p.append(bm_end)
+
+def add_hyperlink_to_paragraph(paragraph, text, anchor, font_size=10, bold=False, color_hex="1B365D"):
+    safe_text = escape(text)
+    safe_anchor = escape(anchor)
+    hl = parse_xml(f'''
+        <w:hyperlink {nsdecls("w")} w:anchor="{safe_anchor}" w:history="1">
+            <w:r>
+                <w:rPr>
+                    <w:rStyle w:val="Hyperlink"/>
+                    <w:color w:val="{color_hex}"/>
+                    <w:u w:val="single"/>
+                    {"<w:b/>" if bold else ""}
+                    <w:sz w:val="{int(font_size * 2)}"/>
+                    <w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>
+                </w:rPr>
+                <w:t xml:space="preserve">{safe_text}</w:t>
+            </w:r>
+        </w:hyperlink>
+    ''')
+    paragraph._p.append(hl)
 
 def create_report_docx(md_path, docx_path):
     print(f"Reading markdown from {md_path}...")
@@ -283,6 +339,10 @@ def create_report_docx(md_path, docx_path):
                             cells.extend([''] * (len(headers) - len(cells)))
                         data_rows.append(cells[:len(headers)])
 
+                # Check if this is the Table of Contents table (Section 1)
+                header_str = " ".join(headers).lower()
+                is_toc_table = ("section no" in header_str or "section title" in header_str)
+
                 # Create Word Table
                 table = doc.add_table(rows=len(data_rows) + 1, cols=len(headers))
                 table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -316,6 +376,12 @@ def create_report_docx(md_path, docx_path):
                     trPr.append(parse_xml(f'<w:cantSplit {nsdecls("w")}/>'))
                     bg_color = "F8FAFC" if row_idx % 2 == 1 else "FFFFFF"
                     
+                    sec_anchor = None
+                    if is_toc_table and len(r_data) >= 2:
+                        raw_sec_num = re.sub(r'[^\d]', '', r_data[0])
+                        if raw_sec_num:
+                            sec_anchor = f"sec_{raw_sec_num}"
+
                     for col_idx, cell_value in enumerate(r_data):
                         cell = row.cells[col_idx]
                         cell.width = Inches(col_widths[col_idx])
@@ -327,14 +393,21 @@ def create_report_docx(md_path, docx_path):
                         p.paragraph_format.space_after = Pt(1)
                         p.paragraph_format.line_spacing = 1.05
 
-                        sub_lines = re.split(r'<br\s*/?>', cell_value)
-                        for s_idx, s_text in enumerate(sub_lines):
-                            if s_idx > 0:
-                                p = cell.add_paragraph()
-                                p.paragraph_format.space_before = Pt(1)
-                                p.paragraph_format.space_after = Pt(1)
-                                p.paragraph_format.line_spacing = 1.05
-                            format_runs(p, s_text.strip(), base_font_size=9.5, base_color=(0x22, 0x22, 0x22))
+                        # If this is the Table of Contents table, link Section Title and Page!
+                        if is_toc_table and sec_anchor and col_idx in [1, 2]:
+                            add_hyperlink_to_paragraph(p, cell_value.strip(), sec_anchor, font_size=9.5, bold=(col_idx == 1), color_hex="1B365D")
+                        elif is_toc_table and sec_anchor and col_idx == 0:
+                            # Also make section number a link
+                            add_hyperlink_to_paragraph(p, cell_value.strip(), sec_anchor, font_size=9.5, bold=True, color_hex="1B365D")
+                        else:
+                            sub_lines = re.split(r'<br\s*/?>', cell_value)
+                            for s_idx, s_text in enumerate(sub_lines):
+                                if s_idx > 0:
+                                    p = cell.add_paragraph()
+                                    p.paragraph_format.space_before = Pt(1)
+                                    p.paragraph_format.space_after = Pt(1)
+                                    p.paragraph_format.line_spacing = 1.05
+                                format_runs(p, s_text.strip(), base_font_size=9.5, base_color=(0x22, 0x22, 0x22))
 
                 sp = doc.add_paragraph()
                 sp.paragraph_format.space_before = Pt(0)
@@ -360,7 +433,8 @@ def create_report_docx(md_path, docx_path):
             text = line[3:].strip()
             
             # Major numbered sections (1. through 25.) trigger page break
-            if re.match(r'^\d+\.\s+', text):
+            sec_anchor = get_sec_anchor(text)
+            if sec_anchor:
                 if not is_cover_page:
                     doc.add_page_break()
             
@@ -368,6 +442,11 @@ def create_report_docx(md_path, docx_path):
             p.paragraph_format.space_before = Pt(14)
             p.paragraph_format.space_after = Pt(6)
             p.paragraph_format.keep_with_next = True
+            
+            # Add section bookmark for Table of Contents redirection!
+            if sec_anchor:
+                add_bookmark(p, sec_anchor)
+                
             format_runs(p, text, base_font_size=15, base_color=(0x1B, 0x36, 0x5D))
             i += 1
             continue
@@ -378,6 +457,15 @@ def create_report_docx(md_path, docx_path):
             p.paragraph_format.space_before = Pt(10)
             p.paragraph_format.space_after = Pt(4)
             p.paragraph_format.keep_with_next = True
+            
+            # Check if this is a Figure or Table title
+            fig_anchor = get_fig_anchor(text)
+            tbl_anchor = get_tbl_anchor(text)
+            if fig_anchor:
+                add_bookmark(p, fig_anchor)
+            elif tbl_anchor:
+                add_bookmark(p, tbl_anchor)
+
             if is_cover_page:
                 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
                 format_runs(p, text, base_font_size=13, base_color=(0x2B, 0x54, 0x7E))
@@ -392,6 +480,15 @@ def create_report_docx(md_path, docx_path):
             p.paragraph_format.space_before = Pt(8)
             p.paragraph_format.space_after = Pt(3)
             p.paragraph_format.keep_with_next = True
+            
+            # Check if this is a Table or Figure title
+            tbl_anchor = get_tbl_anchor(text)
+            fig_anchor = get_fig_anchor(text)
+            if tbl_anchor:
+                add_bookmark(p, tbl_anchor)
+            elif fig_anchor:
+                add_bookmark(p, fig_anchor)
+
             format_runs(p, text, base_font_size=11, base_color=(0x33, 0x33, 0x33))
             i += 1
             continue
@@ -407,14 +504,26 @@ def create_report_docx(md_path, docx_path):
             i += 1
             continue
 
-        # Handle Bulleted Lists
+        # Handle Bulleted Lists (Check for Figure / Table links in Section 4)
         if line.startswith('- ') or line.startswith('* ') or line.startswith('• '):
             text = line[2:].strip()
             p = doc.add_paragraph(style='List Bullet')
             p.paragraph_format.space_before = Pt(1)
             p.paragraph_format.space_after = Pt(2)
             p.paragraph_format.line_spacing = 1.12
-            format_runs(p, text, base_font_size=10.5)
+            
+            # Check if this bullet references a Figure or Table
+            fig_anchor = get_fig_anchor(text)
+            tbl_anchor = get_tbl_anchor(text)
+            
+            if fig_anchor:
+                # Add as clickable hyperlink to figure
+                add_hyperlink_to_paragraph(p, text, fig_anchor, font_size=10.5, bold=False, color_hex="1B365D")
+            elif tbl_anchor:
+                # Add as clickable hyperlink to table
+                add_hyperlink_to_paragraph(p, text, tbl_anchor, font_size=10.5, bold=False, color_hex="1B365D")
+            else:
+                format_runs(p, text, base_font_size=10.5)
             i += 1
             continue
 
@@ -462,13 +571,27 @@ def create_report_docx(md_path, docx_path):
         i += 1
 
     print(f"Saving finalized formatted DOCX to {docx_path}...")
-    doc.save(docx_path)
-    print("Document successfully created and saved!")
+    try:
+        doc.save(docx_path)
+        print(f"Document successfully created and saved to {docx_path}!")
+        return True
+    except PermissionError:
+        print(f"FILE LOCKED: Could not write directly to {docx_path} because it is currently open in Microsoft Word.")
+        return False
 
 if __name__ == '__main__':
     md_file = r'C:\Users\USER\Desktop\VMS\PROJECT_REPORT.md'
     out_docx1 = r'C:\Users\USER\Desktop\VMS\PROJECT_REPORT.docx'
-    out_docx2 = r'C:\Users\USER\Desktop\VMS\Prithwiraj_Mazumdar_BCA_VMS_Project_Report.docx'
+    out_docx2 = r'C:\Users\USER\Desktop\VMS\Prithwiraj_Mazumdar_BCA_VMS_Project_Report_Linked.docx'
+    target_final = r'C:\Users\USER\Desktop\VMS\Prithwiraj_Mazumdar_BCA_VMS_Project_Report.docx'
     
+    # Generate PROJECT_REPORT.docx
     create_report_docx(md_file, out_docx1)
+    
+    # Generate Prithwiraj_Mazumdar_BCA_VMS_Project_Report_Linked.docx
     create_report_docx(md_file, out_docx2)
+    
+    # Attempt to update target_final
+    success = create_report_docx(md_file, target_final)
+    if not success:
+        print(f"Note: To update '{target_final}', please close Word and run: python generate_docx.py")
