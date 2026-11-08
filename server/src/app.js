@@ -5,6 +5,9 @@ import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { sequelize, User } from './models/index.js';
 import apiRoutes from './routes/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -12,6 +15,10 @@ import { logger } from './utils/logger.js';
 import { seedDatabase } from './database/seed.js';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientDist = path.join(__dirname, '../../client/dist');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -79,7 +86,18 @@ app.get('/health', (req, res) => {
 // 7. Mount Core API Routes
 app.use('/api/v1', apiRoutes);
 
-// 8. 404 Route Handler
+// 8. Serve Client Frontend SPA (if built)
+if (fs.existsSync(clientDist)) {
+  app.use(express.static(clientDist));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path === '/health') {
+      return next();
+    }
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+}
+
+// 9. 404 Route Handler for unmatched API routes
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
@@ -87,10 +105,10 @@ app.use('*', (req, res) => {
   });
 });
 
-// 9. Centralized Error Handler
+// 10. Centralized Error Handler
 app.use(errorHandler);
 
-// 10. Database Initialization and Server Boot
+// 11. Database Initialization and Server Boot
 const startServer = async () => {
   try {
     logger.info('Connecting to database...');

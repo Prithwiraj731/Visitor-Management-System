@@ -136,3 +136,4 @@ export const stopEmergencySiren = () => {
     emergencyInterval = null;
   }
 };
+

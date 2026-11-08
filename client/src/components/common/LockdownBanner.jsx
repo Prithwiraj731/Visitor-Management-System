@@ -73,3 +73,4 @@ export const LockdownBanner = () => {
 };
 
 export default LockdownBanner;
+

@@ -407,3 +407,4 @@ export const WebcamScannerModal = ({ isOpen, onClose, onVisitorAdmitted }) => {
 };
 
 export default WebcamScannerModal;
+
