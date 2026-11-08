@@ -484,14 +484,25 @@ export const getVisitPass = async (req, res, next) => {
   try {
     const { id } = req.params;
     const cleanId = String(id || '').trim();
-    const isBadge = cleanId.toUpperCase().includes('VMS-');
+    if (!cleanId) {
+      return res.status(400).json({ success: false, message: 'Pass identifier required' });
+    }
 
+    const upperId = cleanId.toUpperCase();
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
     let visit = null;
 
-    // 1. Direct Badge Number Lookup
-    if (isBadge) {
+    // 1. Direct Badge Number Lookup (exact, uppercase, or partial wildcard)
+    try {
       visit = await Visit.findOne({
-        where: { badgeNumber: { [Op.like]: `%${cleanId}%` } },
+        where: {
+          [Op.or]: [
+            { badgeNumber: cleanId },
+            { badgeNumber: upperId },
+            { badgeNumber: { [Op.like]: `%${cleanId}%` } },
+            { badgeNumber: { [Op.like]: `%${upperId}%` } }
+          ]
+        },
         include: [
           { model: Visitor, as: 'visitor' },
           { model: User, as: 'host', attributes: ['id', 'fullName', 'email', 'phone'] },
@@ -499,10 +510,12 @@ export const getVisitPass = async (req, res, next) => {
         ],
         order: [['createdAt', 'DESC']]
       });
+    } catch {
+      // quiet fallback
     }
 
-    // 2. Primary Key UUID Lookup
-    if (!visit) {
+    // 2. Primary Key UUID Lookup (only if string matches UUID format to prevent PG error)
+    if (!visit && isUuid) {
       try {
         visit = await Visit.findByPk(cleanId, {
           include: [
@@ -516,20 +529,23 @@ export const getVisitPass = async (req, res, next) => {
       }
     }
 
-    // 3. Fallback: Search by Visitor Phone Number or Name
+    // 3. Fallback: Search by Visitor Phone Number or Full Name (returns latest visit)
     if (!visit && cleanId.length >= 3) {
       try {
-        const matchedVisitor = await Visitor.findOne({
+        const matchedVisitors = await Visitor.findAll({
           where: {
             [Op.or]: [
               { phone: { [Op.like]: `%${cleanId}%` } },
               { fullName: { [Op.like]: `%${cleanId}%` } }
             ]
-          }
+          },
+          attributes: ['id']
         });
-        if (matchedVisitor) {
+
+        if (matchedVisitors.length > 0) {
+          const visitorIds = matchedVisitors.map((v) => v.id);
           visit = await Visit.findOne({
-            where: { visitorId: matchedVisitor.id },
+            where: { visitorId: { [Op.in]: visitorIds } },
             include: [
               { model: Visitor, as: 'visitor' },
               { model: User, as: 'host', attributes: ['id', 'fullName', 'email', 'phone'] },

@@ -28,12 +28,31 @@ export const PassPage = () => {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeId, setActiveId] = useState(routeId || '');
-  const [visit, setVisit] = useState(null);
-  const [loading, setLoading] = useState(true);
+  
+  // Eagerly restore cached pass from local storage if available
+  const [visit, setVisit] = useState(() => {
+    try {
+      const raw = localStorage.getItem('vms_cached_pass_data');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (
+          !routeId ||
+          parsed.badgeNumber === routeId ||
+          parsed.id === routeId ||
+          String(parsed.badgeNumber || '').toUpperCase() === String(routeId || '').toUpperCase()
+        ) {
+          return parsed;
+        }
+      }
+    } catch {}
+    return null;
+  });
+
+  const [loading, setLoading] = useState(!visit && Boolean(routeId || localStorage.getItem('vms_last_pass_token')));
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const previousStatusRef = useRef(null);
+  const previousStatusRef = useRef(visit?.status || null);
 
   // Sync state if route param changes
   useEffect(() => {
@@ -44,7 +63,7 @@ export const PassPage = () => {
       const cachedToken = localStorage.getItem('vms_last_pass_token');
       if (cachedToken) {
         setActiveId(cachedToken);
-      } else {
+      } else if (!visit) {
         setLoading(false);
       }
     }
@@ -56,7 +75,7 @@ export const PassPage = () => {
 
     let isMounted = true;
     const fetchPass = async (silent = false) => {
-      if (!silent) setLoading(true);
+      if (!silent && !visit) setLoading(true);
       else setIsRefreshing(true);
 
       try {
@@ -81,13 +100,18 @@ export const PassPage = () => {
           try {
             localStorage.setItem('vms_last_pass_token', passData.badgeNumber || passData.id);
             localStorage.setItem('vms_last_pass_name', passData.visitor?.fullName || 'Visitor');
+            localStorage.setItem('vms_cached_pass_data', JSON.stringify(passData));
           } catch {}
         }
       } catch (err) {
         if (!isMounted) return;
         console.warn('Pass lookup error:', err);
-        setError('Security pass not found. Please verify your badge number or mobile phone.');
-        setVisit(null);
+        // If we already have a valid visit displayed from cache, preserve it!
+        setVisit((current) => {
+          if (current) return current;
+          setError('Security pass not found. Please verify your badge number or mobile phone.');
+          return null;
+        });
       } finally {
         if (isMounted) {
           setLoading(false);

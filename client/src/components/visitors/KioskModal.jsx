@@ -93,11 +93,11 @@ export const KioskModal = ({ isOpen, onClose }) => {
         try {
           localStorage.setItem('vms_last_pass_token', passToken);
           localStorage.setItem('vms_last_pass_name', passVisit.visitor?.fullName || formData.fullName);
+          localStorage.setItem('vms_cached_pass_data', JSON.stringify(passVisit));
         } catch {}
 
-        // Close modal and redirect directly to dedicated permanent pass endpoint
-        onClose();
-        navigate(`/pass/${encodeURIComponent(passToken)}`);
+        // 1. Show the QR pass modal immediately (like previous)
+        setIssuedVisit(passVisit);
         return;
       }
     } catch (err) {
@@ -108,6 +108,8 @@ export const KioskModal = ({ isOpen, onClose }) => {
   };
 
   const handleDone = () => {
+    // Capture token before clearing state
+    const tokenToRedirect = issuedVisit?.badgeNumber || issuedVisit?.id;
     setIssuedVisit(null);
     onClose();
     setFormData({
@@ -115,12 +117,17 @@ export const KioskModal = ({ isOpen, onClose }) => {
       phone: '',
       email: '',
       company: '',
-      hostId: hosts[0]?.id || '',
+      hostId: effectiveHosts[0]?.id || '',
       purpose: 'Business Meeting',
       idProofType: 'National ID / Driving License',
       idProofNumber: '',
       notes: 'Self-registered at guest kiosk'
     });
+
+    // 2. Automatically redirect to dedicated pass page when visitor cuts/closes the QR box
+    if (tokenToRedirect) {
+      navigate(`/pass/${encodeURIComponent(tokenToRedirect)}`);
+    }
   };
 
   return (

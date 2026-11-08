@@ -50,6 +50,7 @@ Desktop.ini
 tmp/
 temp/
 .tmp/
+~$*
 
 # Uploaded files (managed separately)
 uploads/
