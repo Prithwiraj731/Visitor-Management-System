@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
-import { Printer, Building, Shield, Clock, User, CheckCircle2, AlertCircle, LogIn, Trash2 } from 'lucide-react';
+import { Printer, Building, Shield, Clock, User, CheckCircle2, AlertCircle, LogIn, Trash2, ExternalLink } from 'lucide-react';
 import { visitService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -451,12 +451,22 @@ export const BadgeModal = ({ isOpen, visit, onClose }) => {
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center justify-between gap-3 w-full mt-4">
-          <Button variant="secondary" onClick={onClose}>
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full mt-4">
+          <Button variant="secondary" onClick={onClose} className="w-full sm:w-auto">
             Close Pass
           </Button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2 w-full sm:w-auto">
+            <a
+              href={`/pass/${encodeURIComponent(currentVisit.badgeNumber || currentVisit.id)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="vms-btn vms-btn-amber text-xs py-2 px-3 flex items-center gap-1.5"
+              title="Open permanent public digital pass URL"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Dedicated Pass URL</span>
+            </a>
             {canAdmit && (
               <Button
                 variant="primary"

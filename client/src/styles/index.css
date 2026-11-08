@@ -67,6 +67,23 @@
 .vms-chamfer-lg { clip-path: polygon(0 0, calc(100% - 40px) 0, 100% 40px, 100% 100%, 40px 100%, 0 calc(100% - 40px)); }
 .vms-chamfer-sm { clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
 
+/* Mobile viewport adjustments: softer chamfers to prevent corner clipping & prevent iOS Safari auto-zoom */
+@media (max-width: 639px) {
+  .vms-chamfer-lg {
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  }
+  .vms-chamfer {
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  }
+  .vms-btn {
+    font-size: 0.875rem;
+    padding: 0.55rem 1rem;
+  }
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* Align the hero's left column with the 72rem content container */
 .vms-gutter-l { padding-left: max(1.5rem, calc((100vw - 72rem) / 2 + 1.5rem)); }
 @media (max-width: 1023px) { .vms-gutter-l { padding-left: 1.25rem; } }

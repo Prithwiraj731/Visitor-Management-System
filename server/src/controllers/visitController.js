@@ -483,17 +483,65 @@ export const rejectVisit = async (req, res, next) => {
 export const getVisitPass = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const isBadge = typeof id === 'string' && (id.startsWith('VMS-') || id.includes('VMS-'));
-    const where = isBadge ? { badgeNumber: id } : { id };
+    const cleanId = String(id || '').trim();
+    const isBadge = cleanId.toUpperCase().includes('VMS-');
 
-    const visit = await Visit.findOne({
-      where,
-      include: [
-        { model: Visitor, as: 'visitor' },
-        { model: User, as: 'host', attributes: ['id', 'fullName', 'email', 'phone'] },
-        { model: Department, as: 'department' }
-      ]
-    });
+    let visit = null;
+
+    // 1. Direct Badge Number Lookup
+    if (isBadge) {
+      visit = await Visit.findOne({
+        where: { badgeNumber: { [Op.like]: `%${cleanId}%` } },
+        include: [
+          { model: Visitor, as: 'visitor' },
+          { model: User, as: 'host', attributes: ['id', 'fullName', 'email', 'phone'] },
+          { model: Department, as: 'department' }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+    }
+
+    // 2. Primary Key UUID Lookup
+    if (!visit) {
+      try {
+        visit = await Visit.findByPk(cleanId, {
+          include: [
+            { model: Visitor, as: 'visitor' },
+            { model: User, as: 'host', attributes: ['id', 'fullName', 'email', 'phone'] },
+            { model: Department, as: 'department' }
+          ]
+        });
+      } catch {
+        // Not a valid PK format
+      }
+    }
+
+    // 3. Fallback: Search by Visitor Phone Number or Name
+    if (!visit && cleanId.length >= 3) {
+      try {
+        const matchedVisitor = await Visitor.findOne({
+          where: {
+            [Op.or]: [
+              { phone: { [Op.like]: `%${cleanId}%` } },
+              { fullName: { [Op.like]: `%${cleanId}%` } }
+            ]
+          }
+        });
+        if (matchedVisitor) {
+          visit = await Visit.findOne({
+            where: { visitorId: matchedVisitor.id },
+            include: [
+              { model: Visitor, as: 'visitor' },
+              { model: User, as: 'host', attributes: ['id', 'fullName', 'email', 'phone'] },
+              { model: Department, as: 'department' }
+            ],
+            order: [['createdAt', 'DESC']]
+          });
+        }
+      } catch {
+        // search error
+      }
+    }
 
     if (!visit) {
       return res.status(404).json({ success: false, message: 'Pass not found' });

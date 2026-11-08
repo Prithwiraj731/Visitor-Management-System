@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { visitService, userService } from '../../services/api';
@@ -16,6 +17,7 @@ const FALLBACK_HOSTS = [
 ];
 
 export const KioskModal = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
   const { isLockdown } = useLockdown();
   const [hosts, setHosts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -84,7 +86,19 @@ export const KioskModal = ({ isOpen, onClose }) => {
       };
       const { data } = await visitService.createKioskVisit(payload);
       if (data?.data) {
-        setIssuedVisit(data.data);
+        const passVisit = data.data;
+        const passToken = passVisit.badgeNumber || passVisit.id;
+
+        // Persist to local storage so pass is never lost even if page refreshed
+        try {
+          localStorage.setItem('vms_last_pass_token', passToken);
+          localStorage.setItem('vms_last_pass_name', passVisit.visitor?.fullName || formData.fullName);
+        } catch {}
+
+        // Close modal and redirect directly to dedicated permanent pass endpoint
+        onClose();
+        navigate(`/pass/${encodeURIComponent(passToken)}`);
+        return;
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please check front desk.');

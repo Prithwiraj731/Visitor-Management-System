@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom';
 import {
   ArrowUpRight, BadgeCheck, Building2, Check, CheckCircle2, DoorOpen, Github,
-  LogIn, LogOut, Menu, Nfc, ScanLine, ShieldCheck, Siren, UserCheck, X,
+  LogIn, LogOut, Menu, Nfc, ScanLine, ShieldCheck, Siren, UserCheck, X, QrCode, Search,
 } from 'lucide-react';
 
 // Match project imports
@@ -92,7 +92,18 @@ export function LandingPage() {
   const [stats, setStats] = useState(FALLBACK_STATS);
   const [recentVisits, setRecentVisits] = useState(FALLBACK_VISITS);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cachedPass, setCachedPass] = useState(null);
   const scanTimer = useRef(null);
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('vms_last_pass_token');
+      const name = localStorage.getItem('vms_last_pass_name');
+      if (token) {
+        setCachedPass({ token, name: name || 'Visitor' });
+      }
+    } catch {}
+  }, []);
 
   useEffect(() => {
     const t = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -161,7 +172,40 @@ export function LandingPage() {
     <div className="vms-page min-h-screen overflow-x-clip bg-[#07090F] text-white antialiased selection:bg-amber-400 selection:text-[#07090F]">
       {/* ───── header ───── */}
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#07090F]">
-        <div className="mx-auto flex h-[68px] max-w-6xl items-center justify-between px-5 sm:px-6">
+        {/* Active Pass Found Banner */}
+        {cachedPass && (
+          <div className="bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-amber-500/20 border-b border-amber-500/30 px-4 py-2.5">
+            <div className="mx-auto max-w-6xl flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2 text-amber-300 font-medium">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>
+                  Active Pass Detected for <strong className="text-white">{cachedPass.name}</strong> ({cachedPass.token})
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => navigate(`/pass/${encodeURIComponent(cachedPass.token)}`)}
+                  className="vms-btn vms-btn-amber text-xs py-1 px-3 font-bold"
+                >
+                  <span>Open My QR Pass</span>
+                  <ArrowUpRight size={14} />
+                </button>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem('vms_last_pass_token');
+                    localStorage.removeItem('vms_last_pass_name');
+                    setCachedPass(null);
+                  }}
+                  className="text-white/40 hover:text-white text-[11px] underline px-1.5 cursor-pointer"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="mx-auto flex h-[68px] max-w-6xl items-center justify-between px-4 sm:px-6">
           <a href="#top" className="flex items-center gap-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400">
             <span className="vms-chamfer-sm grid h-9 w-9 place-items-center bg-amber-500 text-[#07090F]"><ShieldCheck size={19} strokeWidth={2.4} /></span>
             <span className="font-display text-[15px]">{BRAND}</span>
@@ -169,17 +213,17 @@ export function LandingPage() {
           <nav className="hidden items-center gap-9 md:flex" aria-label="Primary">
             {NAV.map(([l, h]) => <a key={h} href={h} className="text-[15px] text-white/70 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-400">{l}</a>)}
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <span className="hidden text-sm tabular-nums text-white/60 lg:block">{dateLabel} · {clock}</span>
             {user ? (
               <>
-                <button onClick={() => navigate('/dashboard')} className="vms-btn vms-btn-amber hidden sm:inline-flex">Open console</button>
-                <button onClick={logout} aria-label="Sign out" className="vms-btn vms-btn-line px-3"><LogOut size={16} /></button>
+                <button onClick={() => navigate('/dashboard')} className="vms-btn vms-btn-amber hidden sm:inline-flex text-xs py-2 px-3">Open console</button>
+                <button onClick={logout} aria-label="Sign out" className="vms-btn vms-btn-line px-2.5 sm:px-3 text-xs py-2"><LogOut size={16} /></button>
               </>
             ) : (
-              <button onClick={() => navigate('/login')} className="vms-btn vms-btn-line"><LogIn size={16} /> Sign in</button>
+              <button onClick={() => navigate('/login')} className="vms-btn vms-btn-line text-xs py-2 px-3 sm:px-4"><LogIn size={15} /> Sign in</button>
             )}
-            <button className="vms-btn vms-btn-line px-3 md:hidden" onClick={() => setMenuOpen((o) => !o)} aria-label="Toggle menu" aria-expanded={menuOpen}>
+            <button className="vms-btn vms-btn-line px-2.5 sm:px-3 text-xs py-2 md:hidden" onClick={() => setMenuOpen((o) => !o)} aria-label="Toggle menu" aria-expanded={menuOpen}>
               {menuOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
           </div>
@@ -194,20 +238,38 @@ export function LandingPage() {
       <main id="top">
         {/* ───── hero: two flat planes ───── */}
         <section className="grid lg:min-h-[46rem] lg:grid-cols-[1.2fr_1fr]">
-          <div className="vms-gutter-l flex flex-col justify-center px-5 py-20 sm:px-6 lg:py-28 lg:pr-16">
-            <p className="flex items-center gap-3 text-[15px] text-white/75">
+          <div className="vms-gutter-l flex flex-col justify-center px-4 py-12 sm:px-6 sm:py-20 lg:py-28 lg:pr-16">
+            <p className="flex items-center gap-3 text-xs sm:text-[15px] text-white/75">
               <span className="vms-pulse relative h-2.5 w-2.5 bg-emerald-400" />
               <span className="tabular-nums">{stats.currentlyInside} people on site now</span>
             </p>
-            <h1 className="font-display mt-8 text-[2.5rem] leading-[1.02] sm:text-5xl lg:text-[3.7rem]">
+            <h1 className="font-display mt-6 sm:mt-8 text-3xl xs:text-4xl sm:text-5xl lg:text-[3.7rem] leading-tight">
               Every visitor, badged and accounted for.
             </h1>
-            <p className="mt-8 max-w-[33rem] text-lg leading-relaxed text-white/70">
+            <p className="mt-5 sm:mt-8 max-w-[33rem] text-sm sm:text-lg leading-relaxed text-white/70">
               Guests check in at the kiosk, guards verify credentials at the gate, and administrators see exactly who is in the building — today, and in an emergency.
             </p>
-            <div className="mt-11 flex flex-wrap gap-3">
-              <button onClick={() => setIsKioskOpen(true)} className="vms-btn vms-btn-amber px-7 py-4 text-base">Check in as a visitor <ArrowUpRight size={18} /></button>
-              <button onClick={() => handleLaunchRole('/dashboard', 'admin')} className="vms-btn vms-btn-line px-7 py-4 text-base">Staff & Admin sign-in</button>
+            <div className="mt-8 sm:mt-11 flex flex-col sm:flex-row flex-wrap gap-3 w-full sm:w-auto">
+              <button
+                onClick={() => setIsKioskOpen(true)}
+                className="vms-btn vms-btn-amber px-6 sm:px-7 py-3.5 sm:py-4 text-sm sm:text-base font-bold justify-center"
+              >
+                <span>Check in as a visitor</span>
+                <ArrowUpRight size={18} />
+              </button>
+              <button
+                onClick={() => navigate('/pass')}
+                className="vms-btn vms-btn-line px-5 sm:px-6 py-3.5 sm:py-4 text-sm sm:text-base font-semibold justify-center"
+              >
+                <QrCode size={18} className="text-amber-400" />
+                <span>Retrieve / Find Pass</span>
+              </button>
+              <button
+                onClick={() => handleLaunchRole('/dashboard', 'admin')}
+                className="vms-btn vms-btn-line px-5 sm:px-6 py-3.5 sm:py-4 text-sm sm:text-base font-semibold justify-center text-white/70 hover:text-white"
+              >
+                Staff Portal
+              </button>
             </div>
           </div>
 

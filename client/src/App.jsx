@@ -14,6 +14,7 @@ import { StaffPage } from './pages/StaffPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { EvacuationPage } from './pages/EvacuationPage';
 import { SupabaseTestPage } from './pages/SupabaseTestPage';
+import { PassPage } from './pages/PassPage';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading, hasRole } = useAuth();
@@ -51,6 +52,10 @@ export function App() {
           <Routes>
             {/* Public Modern Landing Page */}
             <Route path="/" element={<LandingPage />} />
+
+            {/* Public Persistent Digital Pass Pages */}
+            <Route path="/pass/:id" element={<PassPage />} />
+            <Route path="/pass" element={<PassPage />} />
 
             {/* Authentication Gateway */}
             <Route path="/login" element={<LoginPage />} />
