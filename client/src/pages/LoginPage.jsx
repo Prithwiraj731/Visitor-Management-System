@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ShieldCheck, Lock, Mail, ArrowRight, ArrowLeft, Terminal, Eye, EyeOff, KeyRound } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, ArrowRight, ArrowLeft, Terminal, Eye, EyeOff } from 'lucide-react';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
@@ -144,45 +144,6 @@ export const LoginPage = () => {
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
-
-          {/* Secure Authorized Roles Reference (Manual Entry Only) */}
-          <div className="mt-8 pt-6 border-t border-white/10">
-            <div className="p-3.5 bg-[#07090F] border border-white/10 vms-chamfer-sm">
-              <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-white/10">
-                <span className="text-[11px] font-bold text-white/80 uppercase tracking-wider flex items-center gap-1.5">
-                  <KeyRound className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Authorized Personnel Credentials</span>
-                </span>
-                <span className="text-[10px] text-emerald-400 font-mono px-1.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded">
-                  Manual Entry
-                </span>
-              </div>
-
-              <div className="space-y-2 text-xs">
-                {/* Admin */}
-                <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-1 p-2 bg-[#0C111B] border border-white/5 rounded">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider px-1.5 py-0.5 bg-amber-400/10 rounded">
-                      Admin
-                    </span>
-                    <span className="font-mono text-white text-xs font-semibold">admin@vms.local</span>
-                  </div>
-                  <span className="font-mono text-white/60 text-[11px] pl-2 xs:pl-0">Password123!</span>
-                </div>
-
-                {/* Guard */}
-                <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-1 p-2 bg-[#0C111B] border border-white/5 rounded">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider px-1.5 py-0.5 bg-emerald-400/10 rounded">
-                      Guard
-                    </span>
-                    <span className="font-mono text-white text-xs font-semibold">guard@vms.local</span>
-                  </div>
-                  <span className="font-mono text-white/60 text-[11px] pl-2 xs:pl-0">Password123!</span>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <div className="text-center mt-6 text-xs text-white/40 font-medium">
