@@ -12,8 +12,8 @@
   }
 
   /* Form controls text and background visibility safeguards */
-  input, select, textarea {
-    color: #0f172a;
+  input, textarea, select {
+    color: #ffffff;
   }
 
   input::placeholder, textarea::placeholder {
