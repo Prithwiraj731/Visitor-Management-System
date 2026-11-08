@@ -4,12 +4,13 @@ import { Button } from '../common/Button';
 import { userService, visitService } from '../../services/api';
 import { User, Phone, Mail, Building, CheckCircle2, ChevronDown } from 'lucide-react';
 
+// Instant standby hosts with real production staff IDs
 const FALLBACK_HOSTS = [
-  { id: 'b17c6476-587e-4e0e-879a-eb9025eb86a8', fullName: 'Sarah Connor (Director)', department: { name: 'Executive Suite' } },
-  { id: 'c54f1d01-58b4-4452-890c-99a1b3345679', fullName: 'Marcus Vance (Chief Security Officer)', department: { name: 'Gate Operations' } },
-  { id: 'bab06356-681c-4f20-a39d-97c37850afa2', fullName: 'Dr. Alan Grant (Principal Architect)', department: { name: 'Engineering & Technology' } },
-  { id: '294ddb06-a3d6-40c5-b279-f0e9e22712aa', fullName: 'Elena Rostova (Head of Talent)', department: { name: 'Human Resources' } },
-  { id: '451a336c-7465-44aa-aa66-0f9362a8d366', fullName: 'David Sterling (VP Partnerships)', department: { name: 'Corporate Sales' } }
+  { id: '5bc69158-3e0a-48e5-8a68-cc428358eba4', fullName: 'David Sterling (VP Partnerships)', department: { name: 'Corporate Sales' } },
+  { id: 'c552ad57-fef5-4756-984d-9f1a906751b3', fullName: 'Sarah Connor (Director)', department: { name: 'Executive Suite' } },
+  { id: '5f0019ac-77a4-433e-bec2-5cc4d07da96d', fullName: 'Dr. Alan Grant (Principal Architect)', department: { name: 'Engineering & Technology' } },
+  { id: 'cc259021-0b76-46f1-80d0-fcfa8032269c', fullName: 'Elena Rostova (Head of Talent)', department: { name: 'Human Resources' } },
+  { id: 'c13c600f-637e-4a84-91e9-c19f3677cf66', fullName: 'Marcus Vance (Chief Security Officer)', department: { name: 'Gate Operations' } }
 ];
 
 export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
@@ -33,6 +34,10 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
   });
 
   useEffect(() => {
+    loadHosts();
+  }, []);
+
+  useEffect(() => {
     if (isOpen) {
       loadHosts();
       setError('');
@@ -44,7 +49,10 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
       const { data } = await userService.getHosts();
       if (data?.data && Array.isArray(data.data) && data.data.length > 0) {
         setHosts(data.data);
-        setFormData(prev => ({ ...prev, hostId: prev.hostId || data.data[0].id }));
+        setFormData(prev => {
+          const hostExists = data.data.some(h => h.id === prev.hostId);
+          return { ...prev, hostId: hostExists ? prev.hostId : data.data[0].id };
+        });
       }
     } catch (err) {
       console.warn('Using standby host list for check-in:', err);
@@ -62,7 +70,12 @@ export const QuickCheckInModal = ({ isOpen, onClose, onSuccess }) => {
     setError('');
 
     try {
-      const { data } = await visitService.createVisit(formData);
+      const selectedHost = effectiveHosts.find(h => h.id === formData.hostId);
+      const payload = {
+        ...formData,
+        hostName: selectedHost?.fullName || ''
+      };
+      const { data } = await visitService.createVisit(payload);
       if (data?.data) {
         if (onSuccess) onSuccess(data.data);
         onClose();

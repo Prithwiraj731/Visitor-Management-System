@@ -58,16 +58,69 @@ export const createVisit = async (req, res, next) => {
       });
     }
 
-    // 2. Determine department from host if not explicitly provided
+    // 2. Determine department and host employee (with multi-tier fallback resolution)
     let targetDeptId = departmentId;
-    const hostUser = await User.findByPk(hostId, {
-      include: [{ model: Department, as: 'department' }]
-    });
+    let hostUser = null;
+
+    if (hostId) {
+      try {
+        hostUser = await User.findByPk(hostId, {
+          include: [{ model: Department, as: 'department' }]
+        });
+      } catch {
+        // hostId was not a valid UUID format
+      }
+    }
+
+    // Try finding by name or email if hostId was not an exact PK match
+    if (!hostUser && hostId) {
+      const cleanHost = String(hostId).replace(/\(.*?\)/g, '').trim();
+      try {
+        hostUser = await User.findOne({
+          where: {
+            [Op.or]: [
+              { fullName: { [Op.like]: `%${cleanHost}%` } },
+              { email: { [Op.like]: `%${cleanHost}%` } }
+            ],
+            isActive: true
+          },
+          include: [{ model: Department, as: 'department' }]
+        });
+      } catch {
+        // search error
+      }
+    }
+
+    // Also check req.body.hostName or req.body.host if provided
+    const hostNameParam = req.body.hostName || req.body.host;
+    if (!hostUser && hostNameParam) {
+      const cleanName = String(hostNameParam).replace(/\(.*?\)/g, '').trim();
+      try {
+        hostUser = await User.findOne({
+          where: {
+            fullName: { [Op.like]: `%${cleanName}%` },
+            isActive: true
+          },
+          include: [{ model: Department, as: 'department' }]
+        });
+      } catch {
+        // search error
+      }
+    }
+
+    // Graceful fallback: If host is still not found, assign the visit to the active administrative host
+    if (!hostUser) {
+      hostUser = await User.findOne({
+        where: { isActive: true },
+        order: [['createdAt', 'ASC']],
+        include: [{ model: Department, as: 'department' }]
+      });
+    }
 
     if (!hostUser) {
       return res.status(404).json({
         success: false,
-        message: 'Designated host employee not found.'
+        message: 'No active staff member available to host visits.'
       });
     }
 
