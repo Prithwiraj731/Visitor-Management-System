@@ -12,6 +12,24 @@ export const getDashboardStats = async (req, res, next) => {
     // Filter by role if host
     const baseWhere = req.user?.role === 'host' ? { hostId: req.user.id } : {};
 
+    // 10-hour cutoff for checked-out visitors
+    const tenHoursAgo = new Date(Date.now() - 10 * 60 * 60 * 1000);
+
+    // Who is here criteria:
+    // - Actively checked in (approved by guard)
+    // - OR checked out within the last 10 hours
+    // - Excludes all pending (awaited for approval) visits
+    const whoIsHereWhere = {
+      ...baseWhere,
+      [Op.or]: [
+        { status: 'checked_in' },
+        {
+          status: 'checked_out',
+          checkOutTime: { [Op.gte]: tenHoursAgo }
+        }
+      ]
+    };
+
     const [
       totalToday,
       currentlyInside,
@@ -45,14 +63,14 @@ export const getDashboardStats = async (req, res, next) => {
         }
       }),
       Visit.findAll({
-        where: baseWhere,
+        where: whoIsHereWhere,
         include: [
           { model: Visitor, as: 'visitor' },
           { model: User, as: 'host', attributes: ['id', 'fullName'] },
           { model: Department, as: 'department', attributes: ['id', 'name'] }
         ],
-        order: [['createdAt', 'DESC']],
-        limit: 8
+        order: [['updatedAt', 'DESC']],
+        limit: 20
       })
     ]);
 
@@ -67,7 +85,7 @@ export const getDashboardStats = async (req, res, next) => {
       limit: 50
     });
 
-    let avgDurationMinutes = 45; // default fallback
+    let avgDurationMinutes = 0;
     if (completedList.length > 0) {
       const totalMinutes = completedList.reduce((acc, v) => {
         const diff = (new Date(v.checkOutTime) - new Date(v.checkInTime)) / 60000;

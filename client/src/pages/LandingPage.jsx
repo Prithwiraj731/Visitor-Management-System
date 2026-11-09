@@ -46,19 +46,12 @@ const PERSONAS = {
   vip: { label: 'VIP', accent: '#10B981', name: 'Elena Rossi', tag: 'VIP guest', host: 'Contact: Executive Suite', access: 'Public floors · Boardroom', valid: 'Valid today until 16:00' },
 };
 
-const FALLBACK_STATS = { currentlyInside: 2, totalToday: 8, avgDurationMinutes: 38 };
+const FALLBACK_STATS = { currentlyInside: 0, totalToday: 0, avgDurationMinutes: 0 };
 
-const FALLBACK_VISITS = [
-  { id: 'v1', name: 'Maya Chen', host: 'D. Okafor', area: 'Lobby · Level 3', time: '09:12', status: 'inside' },
-  { id: 'v2', name: 'Rahul Verma', host: 'Facilities', area: 'Loading dock', time: '09:04', status: 'inside' },
-  { id: 'v3', name: 'Elena Rossi', host: 'Executive office', area: 'Boardroom', time: '08:57', status: 'inside' },
-  { id: 'v4', name: 'Tomás Alvarez', host: 'P. Nair', area: 'Reception', time: '08:41', status: 'pending' },
-  { id: 'v5', name: 'Hannah Becker', host: 'S. Iyer', area: 'Level 2', time: '08:30', status: 'left' },
-];
+const FALLBACK_VISITS = [];
 
 const STATUS = {
   inside: { label: 'On site', color: '#10B981', text: 'text-emerald-300' },
-  pending: { label: 'Awaiting badge', color: '#F59E0B', text: 'text-amber-300' },
   left: { label: 'Checked out', color: '#5B6475', text: 'text-white/55' },
 };
 
@@ -67,14 +60,17 @@ const initials = (n = '') => n.split(' ').map((p) => p[0]).slice(0, 2).join('').
 
 const normalizeVisit = (v, i) => {
   const raw = String(v.status ?? 'inside').toLowerCase();
-  const when = v.checkInTime ?? v.check_in_time ?? v.checkIn;
+  const isOut = raw.includes('out') || raw === 'left' || raw === 'completed';
+  const when = isOut
+    ? (v.checkOutTime ?? v.check_out_time ?? v.updatedAt)
+    : (v.checkInTime ?? v.check_in_time ?? v.createdAt);
   return {
     id: v.id ?? v._id ?? `visit-${i}`,
     name: v.visitor?.fullName ?? v.visitorName ?? v.visitor_name ?? v.name ?? 'Visitor',
     host: v.host?.fullName ?? v.hostName ?? v.host_name ?? v.host ?? '—',
     area: v.department?.name ?? v.area ?? v.location ?? v.purpose ?? 'Reception',
     time: v.time ?? (when ? new Date(when).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '—'),
-    status: raw.includes('out') || v.status === 'completed' ? 'left' : raw.includes('pend') ? 'pending' : 'inside',
+    status: isOut ? 'left' : 'inside',
   };
 };
 
@@ -118,14 +114,36 @@ export function LandingPage() {
         if (!alive || !res) return;
         const data = res.data?.data || res.data;
         if (!data) return;
-        setStats((p) => ({
-          currentlyInside: data.currentlyInside ?? data.currently_inside ?? p.currentlyInside,
-          totalToday: data.totalToday ?? data.total_today ?? p.totalToday,
-          avgDurationMinutes: data.avgDurationMinutes ?? data.avg_duration_minutes ?? p.avgDurationMinutes,
-        }));
+        setStats({
+          currentlyInside: data.currentlyInside ?? data.currently_inside ?? 0,
+          totalToday: data.totalToday ?? data.total_today ?? 0,
+          avgDurationMinutes: data.avgDurationMinutes ?? data.avg_duration_minutes ?? 0,
+        });
         const list = data.recentVisits ?? data.recent_visits ?? data.recentActivity;
-        if (Array.isArray(list) && list.length) setRecentVisits(list.slice(0, 8).map(normalizeVisit));
-      } catch { /* keep demo data */ }
+        if (Array.isArray(list)) {
+          // Keep only:
+          // 1. Actively checked in (approved by guard, inside the building)
+          // 2. Checked out, but ONLY if checked out within the last 10 hours
+          // (Excludes all pending / awaiting approval visits)
+          const tenHoursAgo = Date.now() - 10 * 60 * 60 * 1000;
+          const filtered = list.filter((v) => {
+            const raw = String(v.status ?? '').toLowerCase();
+            if (raw === 'checked_in' || raw === 'inside') return true;
+            if (raw === 'checked_out' || raw === 'left' || raw === 'completed') {
+              const outTime = v.checkOutTime ?? v.check_out_time ?? v.updatedAt;
+              if (!outTime) return true;
+              return new Date(outTime).getTime() >= tenHoursAgo;
+            }
+            return false;
+          });
+          setRecentVisits(filtered.slice(0, 15).map(normalizeVisit));
+        } else {
+          setRecentVisits([]);
+        }
+      } catch {
+        setRecentVisits([]);
+        setStats({ currentlyInside: 0, totalToday: 0, avgDurationMinutes: 0 });
+      }
     })();
     return () => { alive = false; };
   }, []);
@@ -405,30 +423,40 @@ export function LandingPage() {
               <div className="hidden grid-cols-[2.4fr_2fr_1.8fr_1.3fr_.7fr] gap-4 border-b border-white/15 px-3 pb-3 text-sm text-white/55 md:grid">
                 <span>Visitor</span><span>Staff Contact</span><span>Area</span><span>Status</span><span className="text-right">Time</span>
               </div>
-              <ul>
-                {recentVisits.map((v, i) => {
-                  const st = STATUS[v.status] ?? STATUS.inside;
-                  return (
-                    <li key={v.id} className="vms-row relative grid grid-cols-[1fr_auto] items-center gap-4 border-b border-white/[.08] px-3 py-4 transition-colors hover:bg-[#121A29] md:grid-cols-[2.4fr_2fr_1.8fr_1.3fr_.7fr]">
-                      {i === 0 && <span className="absolute inset-y-0 left-0 w-[3px] bg-sky-400" aria-hidden />}
-                      <div className="flex min-w-0 items-center gap-4">
-                        <span className="font-display grid h-10 w-10 shrink-0 place-items-center bg-[#1B2434] text-xs">{initials(v.name)}</span>
-                        <div className="min-w-0">
-                          <p className="truncate font-semibold">{v.name}</p>
-                          <p className="truncate text-sm text-white/55 md:hidden">{v.host} · {v.area}</p>
+              {recentVisits.length > 0 ? (
+                <ul>
+                  {recentVisits.map((v, i) => {
+                    const st = STATUS[v.status] ?? STATUS.inside;
+                    return (
+                      <li key={v.id} className="vms-row relative grid grid-cols-[1fr_auto] items-center gap-4 border-b border-white/[.08] px-3 py-4 transition-colors hover:bg-[#121A29] md:grid-cols-[2.4fr_2fr_1.8fr_1.3fr_.7fr]">
+                        {i === 0 && <span className="absolute inset-y-0 left-0 w-[3px] bg-sky-400" aria-hidden />}
+                        <div className="flex min-w-0 items-center gap-4">
+                          <span className="font-display grid h-10 w-10 shrink-0 place-items-center bg-[#1B2434] text-xs">{initials(v.name)}</span>
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold">{v.name}</p>
+                            <p className="truncate text-sm text-white/55 md:hidden">{v.host} · {v.area}</p>
+                          </div>
                         </div>
-                      </div>
-                      <p className="hidden truncate text-white/75 md:block">{v.host}</p>
-                      <p className="hidden truncate text-white/75 md:block">{v.area}</p>
-                      <div className="text-right md:text-left">
-                        <p className={cx('inline-flex items-center gap-2 text-sm font-semibold', st.text)}><span className="h-2 w-2" style={{ background: st.color }} />{st.label}</p>
-                        <p className="text-sm tabular-nums text-white/50 md:hidden">{v.time}</p>
-                      </div>
-                      <p className="hidden text-right tabular-nums text-white/65 md:block">{v.time}</p>
-                    </li>
-                  );
-                })}
-              </ul>
+                        <p className="hidden truncate text-white/75 md:block">{v.host}</p>
+                        <p className="hidden truncate text-white/75 md:block">{v.area}</p>
+                        <div className="text-right md:text-left">
+                          <p className={cx('inline-flex items-center gap-2 text-sm font-semibold', st.text)}><span className="h-2 w-2" style={{ background: st.color }} />{st.label}</p>
+                          <p className="text-sm tabular-nums text-white/50 md:hidden">{v.time}</p>
+                        </div>
+                        <p className="hidden text-right tabular-nums text-white/65 md:block">{v.time}</p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <div className="my-6 border border-white/10 bg-[#0E1420] vms-chamfer p-10 text-center">
+                  <div className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-full bg-white/5 text-white/40">
+                    <DoorOpen size={24} />
+                  </div>
+                  <p className="font-display text-lg text-white">No active visitors on site right now</p>
+                  <p className="mt-1 text-sm text-white/50">Only visitors approved and checked in by security (or checked out within the last 10 hours) appear here.</p>
+                </div>
+              )}
             </div>
           </div>
         </section>
