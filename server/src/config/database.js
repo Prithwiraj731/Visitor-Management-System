@@ -8,13 +8,23 @@ const dialect = process.env.DB_DIALECT || 'sqlite';
 let sequelize;
 
 if (process.env.DATABASE_URL) {
+  const sslCa = process.env.DB_SSL_CA ? process.env.DB_SSL_CA.replace(/\\n/g, '\n') : undefined;
+  const rejectUnauthorized = process.env.DB_SSL_REJECT_UNAUTHORIZED === 'true' || Boolean(sslCa);
+
+  if (process.env.NODE_ENV === 'production' && !rejectUnauthorized) {
+    logger.warn(
+      'Postgres SSL certificate verification is disabled (DB_SSL_REJECT_UNAUTHORIZED != true). Supply DB_SSL_CA and enable strict verification in production.'
+    );
+  }
+
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
     logging: (msg) => logger.debug(msg),
     dialectOptions: process.env.NODE_ENV === 'production' ? {
       ssl: {
         require: true,
-        rejectUnauthorized: false
+        rejectUnauthorized,
+        ...(sslCa ? { ca: sslCa } : {})
       }
     } : {}
   });
@@ -22,7 +32,7 @@ if (process.env.DATABASE_URL) {
   sequelize = new Sequelize(
     process.env.DB_NAME || 'vms_db',
     process.env.DB_USER || 'postgres',
-    process.env.DB_PASSWORD || 'postgres',
+    process.env.DB_PASSWORD || '',
     {
       host: process.env.DB_HOST || 'localhost',
       port: process.env.DB_PORT || 5432,
@@ -39,4 +49,3 @@ if (process.env.DATABASE_URL) {
 }
 
 export { sequelize };
-

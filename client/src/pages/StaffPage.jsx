@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { PageWrapper } from '../components/layout/PageWrapper';
 import { userService, departmentService } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
 import { Modal } from '../components/common/Modal';
 import { Plus } from 'lucide-react';
 
 export const StaffPage = () => {
+  const { hasRole } = useAuth();
   const [users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -199,7 +201,9 @@ export const StaffPage = () => {
               >
                 <option value="guard" className="text-slate-900 bg-white">Security Guard (Gate View & Desk)</option>
                 <option value="admin" className="text-slate-900 bg-white">Administrator (Operations & Audit)</option>
-                <option value="super_admin" className="text-slate-900 bg-white">Super Admin (All System Privileges)</option>
+                {hasRole('super_admin') && (
+                  <option value="super_admin" className="text-slate-900 bg-white">Super Admin (All System Privileges)</option>
+                )}
               </select>
             </div>
 

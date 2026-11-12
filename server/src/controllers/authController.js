@@ -1,18 +1,36 @@
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { User, Department } from '../models/index.js';
 import { logAudit } from '../utils/auditLogger.js';
+import {
+  securityConfig,
+  revokeRefreshJti,
+  isRefreshJtiRevoked,
+  recordUserLogout,
+  isTokenIssuedBeforeLogout
+} from '../config/security.js';
+
+const getRefreshCookieOptions = () => {
+  const isProd = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  };
+};
 
 const generateTokens = (user) => {
   const accessToken = jwt.sign(
     { id: user.id, email: user.email, role: user.role },
-    process.env.JWT_SECRET || 'vms_super_secret_production_ready_jwt_key_2026_x89!',
-    { expiresIn: process.env.JWT_EXPIRES_IN || '2h' }
+    securityConfig.jwtSecret,
+    { algorithm: 'HS256', expiresIn: process.env.JWT_EXPIRES_IN || '2h' }
   );
 
   const refreshToken = jwt.sign(
-    { id: user.id },
-    process.env.JWT_REFRESH_SECRET || 'vms_super_secret_refresh_key_998877_secure!',
-    { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
+    { id: user.id, jti: crypto.randomUUID() },
+    securityConfig.jwtRefreshSecret,
+    { algorithm: 'HS256', expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
   );
 
   return { accessToken, refreshToken };
@@ -29,11 +47,7 @@ export const login = async (req, res, next) => {
       });
     }
 
-    let normalizedEmail = email.toLowerCase().trim();
-    if (normalizedEmail === 'admin') normalizedEmail = 'admin@vms.local';
-    if (normalizedEmail === 'guard') normalizedEmail = 'guard@vms.local';
-    if (normalizedEmail === 'admin@vms.com') normalizedEmail = 'admin@vms.local';
-    if (normalizedEmail === 'guard@vms.com') normalizedEmail = 'guard@vms.local';
+    const normalizedEmail = email.toLowerCase().trim();
 
     const user = await User.findOne({
       where: { email: normalizedEmail },
@@ -41,6 +55,12 @@ export const login = async (req, res, next) => {
     });
 
     if (!user) {
+      await logAudit({
+        req,
+        action: 'USER_LOGIN_FAILED',
+        entityType: 'User',
+        details: { email: normalizedEmail, reason: 'USER_NOT_FOUND' }
+      });
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -48,24 +68,29 @@ export const login = async (req, res, next) => {
     }
 
     if (!user.isActive) {
+      await logAudit({
+        req,
+        action: 'USER_LOGIN_FAILED',
+        entityType: 'User',
+        entityId: user.id,
+        details: { email: normalizedEmail, reason: 'ACCOUNT_DISABLED' }
+      });
       return res.status(403).json({
         success: false,
         message: 'This account has been disabled. Contact system administrator.'
       });
     }
 
-    let isMatch = await user.comparePassword(password);
-
-    // Friendly demo fallback for common typing variations (case sensitivity / missing !)
-    if (!isMatch) {
-      const cleanPass = password.trim();
-      const demoPasses = ['Password123!', 'Password123', 'password123!', 'password123', 'admin', 'guard'];
-      if (demoPasses.includes(cleanPass) && (user.email === 'admin@vms.local' || user.email === 'guard@vms.local')) {
-        isMatch = true;
-      }
-    }
+    const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
+      await logAudit({
+        req,
+        action: 'USER_LOGIN_FAILED',
+        entityType: 'User',
+        entityId: user.id,
+        details: { email: normalizedEmail, reason: 'INVALID_PASSWORD' }
+      });
       return res.status(401).json({
         success: false,
         message: 'Invalid email or password'
@@ -75,12 +100,7 @@ export const login = async (req, res, next) => {
     const { accessToken, refreshToken } = generateTokens(user);
 
     // Set secure HTTP-only refresh cookie
-    res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
+    res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
 
     await logAudit({
       req,
@@ -113,7 +133,18 @@ export const refresh = async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || 'vms_super_secret_refresh_key_998877_secure!');
+    const decoded = jwt.verify(token, securityConfig.jwtRefreshSecret, { algorithms: ['HS256'] });
+
+    if (
+      (decoded.jti && isRefreshJtiRevoked(decoded.jti)) ||
+      isTokenIssuedBeforeLogout(decoded.id, decoded.iat)
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token has been revoked'
+      });
+    }
+
     const user = await User.findByPk(decoded.id, {
       include: [{ model: Department, as: 'department' }]
     });
@@ -125,7 +156,13 @@ export const refresh = async (req, res, next) => {
       });
     }
 
-    const { accessToken } = generateTokens(user);
+    // Rotate refresh token: revoke the old jti and issue a fresh token pair
+    if (decoded.jti) {
+      revokeRefreshJti(decoded.jti);
+    }
+
+    const { accessToken, refreshToken } = generateTokens(user);
+    res.cookie('refreshToken', refreshToken, getRefreshCookieOptions());
 
     return res.status(200).json({
       success: true,
@@ -143,8 +180,27 @@ export const refresh = async (req, res, next) => {
 };
 
 export const logout = async (req, res) => {
-  res.clearCookie('refreshToken');
+  const token = req.cookies?.refreshToken;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, securityConfig.jwtRefreshSecret, {
+        algorithms: ['HS256'],
+        ignoreExpiration: true
+      });
+      if (decoded?.jti) {
+        revokeRefreshJti(decoded.jti);
+      }
+    } catch {
+      // ignore invalid refresh token on logout
+    }
+  }
+
+  const clearOpts = getRefreshCookieOptions();
+  delete clearOpts.maxAge;
+  res.clearCookie('refreshToken', clearOpts);
+
   if (req.user) {
+    recordUserLogout(req.user.id);
     await logAudit({
       req,
       action: 'USER_LOGOUT',
@@ -164,4 +220,3 @@ export const getMe = async (req, res) => {
     data: req.user.toJSON()
   });
 };
-

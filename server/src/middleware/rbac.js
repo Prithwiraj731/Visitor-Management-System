@@ -1,5 +1,7 @@
+import { logAudit } from '../utils/auditLogger.js';
+
 export const authorize = (...allowedRoles) => {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -8,13 +10,19 @@ export const authorize = (...allowedRoles) => {
     }
 
     if (!allowedRoles.includes(req.user.role)) {
+      await logAudit({
+        req,
+        action: 'ACCESS_DENIED',
+        entityType: 'Route',
+        entityId: req.originalUrl,
+        details: { method: req.method, path: req.originalUrl }
+      });
       return res.status(403).json({
         success: false,
-        message: `Forbidden: role '${req.user.role}' lacks permission for this action.`
+        message: 'Forbidden: insufficient permissions for this action.'
       });
     }
 
     next();
   };
 };
-

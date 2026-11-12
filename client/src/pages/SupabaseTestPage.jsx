@@ -9,10 +9,15 @@ export const SupabaseTestPage = () => {
   const [responseLog, setResponseLog] = useState(null);
 
   const testSupabase = async () => {
+    if (!supabase) {
+      setStatus('error');
+      setResponseLog({ code: 'MISSING_ENV', message: 'Supabase client is not configured via VITE_SUPABASE_* env vars.' });
+      return;
+    }
     setStatus('checking');
     try {
       const response = await supabase.from('todos').select('*');
-      setResponseLog(response);
+      setResponseLog({ status: response.status, error: response.error ? response.error.message : null, count: Array.isArray(response.data) ? response.data.length : 0 });
 
       if (response.error) {
         if (response.error.code === 'PGRST205') {
@@ -70,7 +75,7 @@ export const SupabaseTestPage = () => {
             <div>
               <span className="text-white/40 uppercase tracking-wider block text-[10px] font-bold mb-1">PROJECT ENDPOINT</span>
               <span className="text-amber-400 font-mono text-xs font-bold break-all">
-                {import.meta.env.VITE_SUPABASE_URL || 'https://wjxjilsgpctwzmjiufux.supabase.co'}
+                {import.meta.env.VITE_SUPABASE_URL || 'Not Configured'}
               </span>
             </div>
 

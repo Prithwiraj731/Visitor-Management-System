@@ -13,6 +13,7 @@ import apiRoutes from './routes/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { logger } from './utils/logger.js';
 import { seedDatabase } from './database/seed.js';
+import { securityConfig } from './config/security.js';
 
 dotenv.config();
 
@@ -23,29 +24,47 @@ const clientDist = path.join(__dirname, '../../client/dist');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// 1. Security Headers (Helmet)
+// Trust reverse proxy (Render / Vercel / Nginx) so req.ip & rate limiting use real client IPs
+app.set('trust proxy', 1);
+
+// 1. Security Headers (Helmet with tuned CSP)
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: 'cross-origin' }
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      connectSrc: ["'self'", 'https:'],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      frameAncestors: ["'self'"]
+    }
+  }
 }));
 
-// 2. CORS Configuration
-const allowedOrigins = [
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'http://127.0.0.1:5173',
-  process.env.CLIENT_URL
-].filter(Boolean);
+// 2. Strict CORS Configuration (Explicit Origin Allowlist)
+const envOrigins = (process.env.CORS_ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+const allowedOrigins = Array.from(new Set([
+  'https://prithwi-vms.vercel.app',
+  ...(process.env.NODE_ENV !== 'production'
+    ? ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000']
+    : []),
+  process.env.CLIENT_URL,
+  ...envOrigins
+].filter(Boolean)));
 
 app.use(cors({
   origin: (origin, callback) => {
-    // allow requests with no origin (like mobile apps, curl, server-to-server)
-    // or any Vercel deployment domain (*.vercel.app), localhost, or configured CLIENT_URL
-    if (
-      !origin ||
-      allowedOrigins.includes(origin) ||
-      origin.endsWith('.vercel.app') ||
-      process.env.NODE_ENV !== 'production'
-    ) {
+    // Allow same-origin / server-to-server / native clients without Origin header,
+    // or strictly matched configured frontend origins
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Blocked by CORS policy'));
@@ -70,9 +89,9 @@ const globalLimiter = rateLimit({
 app.use('/api', globalLimiter);
 
 // 4. Request Body & Cookie Parsing
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(cookieParser(process.env.COOKIE_SECRET || 'vms_cookie_secret_hash_key_12345'));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use(cookieParser(securityConfig.cookieSecret));
 
 // 5. HTTP Logging
 if (process.env.NODE_ENV !== 'test') {
@@ -121,21 +140,27 @@ const startServer = async () => {
     await sequelize.authenticate();
     logger.info('Database connection established successfully.');
 
-    // Sync schema
+    // Sync schema safely (creates missing tables such as system_settings without dropping data)
     await sequelize.sync();
 
-    // Check if initial admin user exists; if not, automatically seed
+    // Auto-seed demo users ONLY in non-production environments or when explicitly enabled
     const userCount = await User.count();
     if (userCount === 0) {
-      logger.info('No users detected in database. Running initial database seed...');
-      await seedDatabase();
+      if (process.env.NODE_ENV !== 'production' || process.env.ALLOW_DEMO_SEED === 'true') {
+        logger.info('No users detected in database. Running initial database seed...');
+        await seedDatabase({ force: false });
+      } else {
+        logger.warn(
+          'Database has 0 users in production. Automatic demo seeding is disabled for security; run secure CLI provisioning with SEED_DEFAULT_PASSWORD.'
+        );
+      }
     }
 
     app.listen(PORT, () => {
       logger.info(`=================================================`);
-      logger.info(`🚀 VMS Backend Server running on port ${PORT}`);
-      logger.info(`📡 API endpoint: http://localhost:${PORT}/api/v1`);
-      logger.info(`🩺 Health check: http://localhost:${PORT}/health`);
+      logger.info(`VMS Backend Server running on port ${PORT}`);
+      logger.info(`API endpoint: http://localhost:${PORT}/api/v1`);
+      logger.info(`Health check: http://localhost:${PORT}/health`);
       logger.info(`=================================================`);
     });
   } catch (error) {
@@ -147,4 +172,3 @@ const startServer = async () => {
 startServer();
 
 export default app;
-

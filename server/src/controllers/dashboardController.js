@@ -3,6 +3,8 @@ import { Visit, Visitor, Department, User } from '../models/index.js';
 
 export const getDashboardStats = async (req, res, next) => {
   try {
+    const isStaff = Boolean(req.user);
+
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
@@ -29,6 +31,30 @@ export const getDashboardStats = async (req, res, next) => {
         }
       ]
     };
+
+    const recentVisitQuery = isStaff
+      ? {
+          where: whoIsHereWhere,
+          include: [
+            { model: Visitor, as: 'visitor', attributes: ['id', 'fullName', 'company', 'phone'] },
+            { model: User, as: 'host', attributes: ['id', 'fullName'] },
+            { model: Department, as: 'department', attributes: ['id', 'name', 'floor', 'building'] }
+          ],
+          order: [['updatedAt', 'DESC']],
+          limit: 20
+        }
+      : {
+          // Public landing feed: return non-PII operational telemetry only (no phone, email, ID proof, QR, or notes)
+          where: whoIsHereWhere,
+          attributes: ['id', 'status', 'checkInTime', 'checkOutTime', 'createdAt', 'updatedAt'],
+          include: [
+            { model: Visitor, as: 'visitor', attributes: ['id', 'fullName'] },
+            { model: User, as: 'host', attributes: ['id', 'fullName'] },
+            { model: Department, as: 'department', attributes: ['id', 'name'] }
+          ],
+          order: [['updatedAt', 'DESC']],
+          limit: 20
+        };
 
     const [
       totalToday,
@@ -62,19 +88,10 @@ export const getDashboardStats = async (req, res, next) => {
           checkOutTime: { [Op.between]: [todayStart, todayEnd] }
         }
       }),
-      Visit.findAll({
-        where: whoIsHereWhere,
-        include: [
-          { model: Visitor, as: 'visitor' },
-          { model: User, as: 'host', attributes: ['id', 'fullName'] },
-          { model: Department, as: 'department', attributes: ['id', 'name'] }
-        ],
-        order: [['updatedAt', 'DESC']],
-        limit: 20
-      })
+      Visit.findAll(recentVisitQuery)
     ]);
 
-    // Average duration in minutes for completed today visits
+    // Average duration in minutes for completed visits
     const completedList = await Visit.findAll({
       where: {
         ...baseWhere,
@@ -82,6 +99,7 @@ export const getDashboardStats = async (req, res, next) => {
         checkInTime: { [Op.ne]: null },
         checkOutTime: { [Op.ne]: null }
       },
+      attributes: ['checkInTime', 'checkOutTime'],
       limit: 50
     });
 
@@ -171,4 +189,3 @@ export const getTrends = async (req, res, next) => {
     next(error);
   }
 };
-

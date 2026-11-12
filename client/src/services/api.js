@@ -10,10 +10,10 @@ export const api = axios.create({
   },
 });
 
-// Request Interceptor: Attach Token
+// Request Interceptor: Attach Token from sessionStorage
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('vms_access_token');
+    const token = sessionStorage.getItem('vms_access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -33,17 +33,19 @@ api.interceptors.response.use(
       try {
         const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
         if (data?.data?.accessToken) {
-          localStorage.setItem('vms_access_token', data.data.accessToken);
+          sessionStorage.setItem('vms_access_token', data.data.accessToken);
           originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`;
           return api(originalRequest);
         }
       } catch (refreshError) {
+        sessionStorage.removeItem('vms_access_token');
+        sessionStorage.removeItem('vms_user');
         localStorage.removeItem('vms_access_token');
         localStorage.removeItem('vms_user');
 
         // Only redirect to login if currently on a protected route
         const currentPath = window.location.pathname;
-        if (currentPath !== '/' && currentPath !== '/login' && currentPath !== '/supabase-test') {
+        if (currentPath !== '/' && currentPath !== '/login' && !currentPath.startsWith('/pass')) {
           window.location.href = '/login';
         }
       }
@@ -64,6 +66,7 @@ export const visitService = {
   getTodayVisits: () => api.get('/visits/today'),
   createVisit: (payload) => api.post('/visits', payload),
   createKioskVisit: (payload) => api.post('/visits/kiosk', payload),
+  verifyQr: (qrData) => api.post('/visits/verify-qr', { qrData }),
   getPass: (id) => api.get(`/visits/pass/${encodeURIComponent(id)}`),
   checkIn: (id) => api.patch(`/visits/${id}/check-in`),
   checkOut: (id) => api.patch(`/visits/${id}/check-out`),
@@ -92,10 +95,7 @@ export const departmentService = {
 
 export const reportService = {
   getSummary: (params) => api.get('/reports/summary', { params }),
-  downloadCsvUrl: (params) => {
-    const searchParams = new URLSearchParams(params).toString();
-    return `${API_BASE_URL}/reports/export/csv?${searchParams}`;
-  },
+  downloadCsv: (params) => api.get('/reports/export/csv', { params, responseType: 'blob' }),
 };
 
 export const notificationService = {
@@ -104,3 +104,7 @@ export const notificationService = {
   markAllRead: () => api.patch('/notifications/read-all'),
 };
 
+export const systemService = {
+  getLockdown: () => api.get('/system/lockdown'),
+  setLockdown: (payload) => api.post('/system/lockdown', payload),
+};

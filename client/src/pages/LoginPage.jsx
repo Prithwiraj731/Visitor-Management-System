@@ -13,16 +13,6 @@ export const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Auto-suggest email hint only if directed from landing role card (passcode must always be entered manually)
-  useEffect(() => {
-    const roleHint = location.state?.roleHint;
-    if (roleHint === 'guard') {
-      setEmail('guard@vms.local');
-    } else if (roleHint === 'super_admin' || roleHint === 'admin') {
-      setEmail('admin@vms.local');
-    }
-  }, [location.state]);
-
   const executeLogin = async (targetEmail, targetPassword) => {
     setError('');
     setLoading(true);
@@ -98,9 +88,9 @@ export const LoginPage = () => {
               <div className="relative">
                 <Mail className="w-4 h-4 text-white/40 absolute left-3.5 top-3" />
                 <input
-                  type="text"
+                  type="email"
                   required
-                  placeholder="admin@vms.local or guard@vms.local"
+                  placeholder="staff@company.com"
                   className="w-full pl-10 pr-3 py-2.5 text-sm bg-[#07090F] border border-white/15 text-white placeholder-white/30 focus:border-amber-400 focus:outline-none transition-colors vms-chamfer-sm"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}

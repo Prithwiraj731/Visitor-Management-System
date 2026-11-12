@@ -41,197 +41,9 @@ export const BadgeModal = ({ isOpen, visit, onClose }) => {
     const isPendingStatus = currentVisit.status === 'pending';
     const isCheckedInStatus = currentVisit.status === 'checked_in';
 
-    const statusBannerHtml = isCheckedInStatus
-      ? `<div style="background:#D1FAE5; color:#065F46; border-bottom:1px solid #A7F3D0; padding:10px 14px; font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:1px; text-align:center;">
-          &#10003; ACCESS GRANTED &bull; CHECKED IN
-        </div>`
-      : isPendingStatus
-      ? `<div style="background:#FEF3C7; color:#92400E; border-bottom:1px solid #FDE68A; padding:10px 14px; font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:1px; text-align:center;">
-          &#9679; AWAITING GUARD CLEARANCE
-        </div>`
-      : `<div style="background:#F1F5F9; color:#475569; border-bottom:1px solid #E2E8F0; padding:10px 14px; font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:1px; text-align:center;">
-          VISIT CONCLUDED &bull; CHECKED OUT
-        </div>`;
-
-    const qrImageHtml = currentVisit.qrCode
-      ? `<img src="${currentVisit.qrCode}" style="width:180px; height:180px; display:block; margin:0 auto;" alt="Security Pass QR" />`
-      : `<div style="width:180px; height:180px; display:flex; align-items:center; justify-content:center; background:#F8FAFC; color:#94A3B8; font-size:12px; margin:0 auto;">QR Unavailable</div>`;
-
     const checkInTimeLabel = currentVisit.checkInTime
       ? new Date(currentVisit.checkInTime).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })
       : 'Pending Gate Entry';
-
-    const printHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="utf-8" />
-          <title>Visitor Pass - ${visitor.fullName || 'Guest'}</title>
-          <style>
-            @page {
-              size: auto;
-              margin: 10mm;
-            }
-            * {
-              box-sizing: border-box;
-              margin: 0;
-              padding: 0;
-              -webkit-print-color-adjust: exact !important;
-              print-color-adjust: exact !important;
-            }
-            html, body {
-              width: 100%;
-              height: auto !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-              background: #ffffff !important;
-              color: #0F172A;
-            }
-            .pass-card {
-              width: 380px;
-              margin: 0 auto;
-              border: 2px solid #0F172A;
-              border-radius: 16px;
-              overflow: hidden;
-              background: #ffffff;
-              box-shadow: none;
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            .pass-header {
-              background: #0C111B !important;
-              color: #ffffff !important;
-              padding: 16px 20px;
-              text-align: center;
-              border-bottom: 3px solid #F59E0B;
-            }
-            .pass-header h1 {
-              font-size: 15px;
-              font-weight: 800;
-              letter-spacing: 1.5px;
-              text-transform: uppercase;
-              margin-bottom: 3px;
-            }
-            .pass-header p {
-              font-size: 9px;
-              letter-spacing: 1px;
-              text-transform: uppercase;
-              color: rgba(255,255,255,0.7);
-            }
-            .pass-body {
-              padding: 24px 22px;
-              text-align: center;
-            }
-            .qr-box {
-              display: inline-block;
-              padding: 12px;
-              background: #ffffff;
-              border: 2px solid #E2E8F0;
-              border-radius: 14px;
-              margin-bottom: 12px;
-            }
-            .serial-badge {
-              display: inline-block;
-              padding: 5px 14px;
-              background: #F1F5F9;
-              border: 1px solid #CBD5E1;
-              border-radius: 6px;
-              font-family: monospace;
-              font-size: 12px;
-              font-weight: 800;
-              color: #D97706;
-              margin-bottom: 16px;
-              letter-spacing: 1px;
-            }
-            .visitor-name {
-              font-size: 24px;
-              font-weight: 900;
-              color: #0F172A;
-              line-height: 1.15;
-            }
-            .visitor-company {
-              font-size: 13px;
-              font-weight: 600;
-              color: #64748B;
-              margin-top: 4px;
-              margin-bottom: 20px;
-            }
-            .details-table {
-              width: 100%;
-              border-top: 1px solid #E2E8F0;
-              padding-top: 14px;
-              margin-bottom: 16px;
-              font-size: 12px;
-              text-align: left;
-            }
-            .detail-row {
-              display: flex;
-              justify-content: space-between;
-              padding: 7px 0;
-              border-bottom: 1px solid #F8FAFC;
-            }
-            .detail-label {
-              color: #64748B;
-              font-weight: 500;
-            }
-            .detail-value {
-              font-weight: 700;
-              color: #0F172A;
-              text-align: right;
-            }
-            .pass-footer {
-              border-top: 1px solid #E2E8F0;
-              padding-top: 12px;
-              font-size: 9px;
-              color: #94A3B8;
-              line-height: 1.4;
-              text-align: center;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="pass-card">
-            <div class="pass-header">
-              <h1>Security Visitor Pass</h1>
-              <p>VMS Enterprise Perimeter Clearance</p>
-            </div>
-            ${statusBannerHtml}
-            <div class="pass-body">
-              <div class="qr-box">
-                ${qrImageHtml}
-              </div>
-              <div>
-                <span class="serial-badge">SERIAL: ${currentVisit.badgeNumber || 'PASS-PENDING'}</span>
-              </div>
-              <div class="visitor-name">${visitor.fullName || 'Authorized Guest'}</div>
-              <div class="visitor-company">${visitor.company || 'Private Visitor'}</div>
-              <div class="details-table">
-                <div class="detail-row">
-                  <span class="detail-label">Visiting:</span>
-                  <span class="detail-value">${host.fullName || 'Reception Desk'}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">Department:</span>
-                  <span class="detail-value">${department.name || 'General Access'}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">Issued / Check-In:</span>
-                  <span class="detail-value">${checkInTimeLabel}</span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">Purpose:</span>
-                  <span class="detail-value">${currentVisit.purpose || 'Official Business'}</span>
-                </div>
-              </div>
-              <div class="pass-footer">
-                This pass must be visibly worn at all times while on site and surrendered to gate security upon exit.
-              </div>
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
 
     let iframe = document.getElementById('vms-print-frame');
     if (!iframe) {
@@ -248,15 +60,124 @@ export const BadgeModal = ({ isOpen, visit, onClose }) => {
 
     const doc = iframe.contentWindow.document;
     doc.open();
-    doc.write(printHtml);
+    doc.write('<!DOCTYPE html><html><head><meta charset="utf-8" /></head><body></body></html>');
     doc.close();
+
+    // Build print DOM strictly using textContent (no raw HTML interpolation -> XSS-safe)
+    doc.title = `Visitor Pass - ${visitor.fullName || 'Guest'}`;
+
+    const style = doc.createElement('style');
+    style.textContent = `
+      @page { size: auto; margin: 10mm; }
+      * { box-sizing: border-box; margin: 0; padding: 0; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      html, body { width: 100%; height: auto !important; margin: 0 !important; padding: 0 !important; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #ffffff !important; color: #0F172A; }
+      .pass-card { width: 380px; margin: 0 auto; border: 2px solid #0F172A; border-radius: 16px; overflow: hidden; background: #ffffff; page-break-inside: avoid; break-inside: avoid; }
+      .pass-header { background: #0C111B !important; color: #ffffff !important; padding: 16px 20px; text-align: center; border-bottom: 3px solid #F59E0B; }
+      .pass-header h1 { font-size: 15px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 3px; }
+      .pass-header p { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.7); }
+      .status-banner { padding: 10px 14px; font-weight: 800; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; text-align: center; }
+      .status-in { background: #D1FAE5; color: #065F46; border-bottom: 1px solid #A7F3D0; }
+      .status-pending { background: #FEF3C7; color: #92400E; border-bottom: 1px solid #FDE68A; }
+      .status-out { background: #F1F5F9; color: #475569; border-bottom: 1px solid #E2E8F0; }
+      .pass-body { padding: 24px 22px; text-align: center; }
+      .qr-box { display: inline-block; padding: 12px; background: #ffffff; border: 2px solid #E2E8F0; border-radius: 14px; margin-bottom: 12px; }
+      .serial-badge { display: inline-block; padding: 5px 14px; background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 6px; font-family: monospace; font-size: 12px; font-weight: 800; color: #D97706; margin-bottom: 16px; letter-spacing: 1px; }
+      .visitor-name { font-size: 24px; font-weight: 900; color: #0F172A; line-height: 1.15; }
+      .visitor-company { font-size: 13px; font-weight: 600; color: #64748B; margin-top: 4px; margin-bottom: 20px; }
+      .details-table { width: 100%; border-top: 1px solid #E2E8F0; padding-top: 14px; margin-bottom: 16px; font-size: 12px; text-align: left; }
+      .detail-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #F8FAFC; gap: 8px; }
+      .detail-label { color: #64748B; font-weight: 500; }
+      .detail-value { font-weight: 700; color: #0F172A; text-align: right; }
+      .pass-footer { border-top: 1px solid #E2E8F0; padding-top: 12px; font-size: 9px; color: #94A3B8; line-height: 1.4; text-align: center; }
+    `;
+    doc.head.appendChild(style);
+
+    const card = doc.createElement('div');
+    card.className = 'pass-card';
+
+    const header = doc.createElement('div');
+    header.className = 'pass-header';
+    const h1 = doc.createElement('h1');
+    h1.textContent = 'Security Visitor Pass';
+    const subtitle = doc.createElement('p');
+    subtitle.textContent = 'VMS Enterprise Perimeter Clearance';
+    header.append(h1, subtitle);
+
+    const banner = doc.createElement('div');
+    banner.className = `status-banner ${isCheckedInStatus ? 'status-in' : isPendingStatus ? 'status-pending' : 'status-out'}`;
+    banner.textContent = isCheckedInStatus
+      ? '✓ ACCESS GRANTED • CHECKED IN'
+      : isPendingStatus
+      ? '● AWAITING GUARD CLEARANCE'
+      : 'VISIT CONCLUDED • CHECKED OUT';
+
+    const body = doc.createElement('div');
+    body.className = 'pass-body';
+
+    const qrBox = doc.createElement('div');
+    qrBox.className = 'qr-box';
+    const isSafeQrDataUrl = /^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=]+$/i.test(currentVisit.qrCode || '');
+    let qrImg = null;
+    if (isSafeQrDataUrl) {
+      qrImg = doc.createElement('img');
+      qrImg.src = currentVisit.qrCode;
+      qrImg.alt = 'Security Pass QR';
+      qrImg.style.cssText = 'width:180px;height:180px;display:block;margin:0 auto;';
+      qrBox.appendChild(qrImg);
+    } else {
+      const qrFallback = doc.createElement('div');
+      qrFallback.style.cssText = 'width:180px;height:180px;display:flex;align-items:center;justify-content:center;background:#F8FAFC;color:#94A3B8;font-size:12px;margin:0 auto;';
+      qrFallback.textContent = 'QR Unavailable';
+      qrBox.appendChild(qrFallback);
+    }
+
+    const serialWrap = doc.createElement('div');
+    const serialBadge = doc.createElement('span');
+    serialBadge.className = 'serial-badge';
+    serialBadge.textContent = `SERIAL: ${currentVisit.badgeNumber || 'PASS-PENDING'}`;
+    serialWrap.appendChild(serialBadge);
+
+    const vName = doc.createElement('div');
+    vName.className = 'visitor-name';
+    vName.textContent = visitor.fullName || 'Authorized Guest';
+
+    const vComp = doc.createElement('div');
+    vComp.className = 'visitor-company';
+    vComp.textContent = visitor.company || 'Private Visitor';
+
+    const detailsTable = doc.createElement('div');
+    detailsTable.className = 'details-table';
+    [
+      ['Visiting:', host.fullName || 'Reception Desk'],
+      ['Department:', department.name || 'General Access'],
+      ['Issued / Check-In:', checkInTimeLabel],
+      ['Purpose:', currentVisit.purpose || 'Official Business']
+    ].forEach(([labelText, valueText]) => {
+      const row = doc.createElement('div');
+      row.className = 'detail-row';
+      const lbl = doc.createElement('span');
+      lbl.className = 'detail-label';
+      lbl.textContent = labelText;
+      const val = doc.createElement('span');
+      val.className = 'detail-value';
+      val.textContent = valueText;
+      row.append(lbl, val);
+      detailsTable.appendChild(row);
+    });
+
+    const footer = doc.createElement('div');
+    footer.className = 'pass-footer';
+    footer.textContent = 'This pass must be visibly worn at all times while on site and surrendered to gate security upon exit.';
+
+    body.append(qrBox, serialWrap, vName, vComp, detailsTable, footer);
+    card.append(header, banner, body);
+    doc.body.appendChild(card);
 
     const triggerPrint = () => {
       iframe.contentWindow.focus();
       iframe.contentWindow.print();
     };
 
-    const qrImg = iframe.contentWindow.document.querySelector('img');
     if (qrImg && !qrImg.complete) {
       qrImg.onload = () => setTimeout(triggerPrint, 100);
       qrImg.onerror = () => setTimeout(triggerPrint, 100);

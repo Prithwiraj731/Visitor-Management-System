@@ -5,6 +5,7 @@ import { Visitor } from './Visitor.js';
 import { Visit } from './Visit.js';
 import { Notification } from './Notification.js';
 import { AuditLog } from './AuditLog.js';
+import { SystemSetting } from './SystemSetting.js';
 
 // Department & User (Head)
 Department.belongsTo(User, { as: 'head', foreignKey: 'headId' });
@@ -41,6 +42,7 @@ export {
   Visitor,
   Visit,
   Notification,
-  AuditLog
+  AuditLog,
+  SystemSetting
 };
 

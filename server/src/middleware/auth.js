@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { User, Department } from '../models/index.js';
+import { securityConfig, isTokenIssuedBeforeLogout } from '../config/security.js';
 
 export const authenticate = async (req, res, next) => {
   try {
@@ -18,7 +19,14 @@ export const authenticate = async (req, res, next) => {
       });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'vms_super_secret_production_ready_jwt_key_2026_x89!');
+    const decoded = jwt.verify(token, securityConfig.jwtSecret, { algorithms: ['HS256'] });
+    if (isTokenIssuedBeforeLogout(decoded.id, decoded.iat)) {
+      return res.status(401).json({
+        success: false,
+        message: 'Session has been logged out. Please log in again.'
+      });
+    }
+
     const user = await User.findByPk(decoded.id, {
       include: [{ model: Department, as: 'department', attributes: ['id', 'name', 'building', 'floor'] }]
     });
@@ -62,7 +70,12 @@ export const optionalAuthenticate = async (req, res, next) => {
       return next();
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'vms_super_secret_production_ready_jwt_key_2026_x89!');
+    const decoded = jwt.verify(token, securityConfig.jwtSecret, { algorithms: ['HS256'] });
+    if (isTokenIssuedBeforeLogout(decoded.id, decoded.iat)) {
+      req.user = null;
+      return next();
+    }
+
     const user = await User.findByPk(decoded.id, {
       include: [{ model: Department, as: 'department', attributes: ['id', 'name', 'building', 'floor'] }]
     });
@@ -78,5 +91,3 @@ export const optionalAuthenticate = async (req, res, next) => {
     next();
   }
 };
-
-

@@ -3,7 +3,7 @@ import { logAudit } from '../utils/auditLogger.js';
 
 export const getUsers = async (req, res, next) => {
   try {
-    const { role, departmentId, isActive, search } = req.query;
+    const { role, departmentId, isActive } = req.query;
     const where = {};
 
     if (role) where.role = role;
@@ -27,8 +27,14 @@ export const getUsers = async (req, res, next) => {
 
 export const getHosts = async (req, res, next) => {
   try {
+    // Public kiosk callers only receive minimal host display fields (no email, phone, or role)
+    const attributes = req.user
+      ? ['id', 'fullName', 'email', 'departmentId']
+      : ['id', 'fullName', 'departmentId'];
+
     const hosts = await User.findAll({
       where: { isActive: true },
+      attributes,
       include: [{ model: Department, as: 'department', attributes: ['id', 'name', 'floor', 'building'] }],
       order: [['fullName', 'ASC']]
     });
@@ -50,6 +56,14 @@ export const createUser = async (req, res, next) => {
       return res.status(400).json({
         success: false,
         message: 'Full name, email, password, and role are required.'
+      });
+    }
+
+    // Prevent horizontal/vertical privilege escalation by non-super_admin users
+    if (role === 'super_admin' && req.user.role !== 'super_admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Only a super_admin can provision super_admin accounts.'
       });
     }
 
@@ -98,6 +112,23 @@ export const updateUser = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
+    if (
+      (user.role === 'super_admin' || role === 'super_admin') &&
+      req.user.role !== 'super_admin'
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only a super_admin can modify or assign super_admin privileges.'
+      });
+    }
+
+    if (String(user.id) === String(req.user.id) && isActive === false) {
+      return res.status(400).json({
+        success: false,
+        message: 'You cannot deactivate your own active session account.'
+      });
+    }
+
     await user.update({
       fullName: fullName !== undefined ? fullName : user.fullName,
       phone: phone !== undefined ? phone : user.phone,
@@ -111,7 +142,7 @@ export const updateUser = async (req, res, next) => {
       action: 'USER_UPDATED',
       entityType: 'User',
       entityId: user.id,
-      details: { role, isActive }
+      details: { role: user.role, isActive: user.isActive }
     });
 
     return res.status(200).json({
@@ -123,4 +154,3 @@ export const updateUser = async (req, res, next) => {
     next(error);
   }
 };
-

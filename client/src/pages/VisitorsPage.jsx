@@ -64,9 +64,21 @@ export const VisitorsPage = () => {
     loadVisits(1);
   };
 
-  const handleExportCsv = () => {
-    const url = reportService.downloadCsvUrl({ status: status || undefined });
-    window.open(url, '_blank');
+  const handleExportCsv = async () => {
+    try {
+      const response = await reportService.downloadCsv({ status: status || undefined });
+      const blob = new Blob([response.data], { type: 'text/csv;charset=utf-8;' });
+      const blobUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `vms_visitor_report_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to export CSV log.');
+    }
   };
 
   return (

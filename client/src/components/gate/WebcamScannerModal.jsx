@@ -215,7 +215,7 @@ export const WebcamScannerModal = ({ isOpen, onClose, onVisitorAdmitted }) => {
     return String(rawData).trim();
   };
 
-  const handleDetectedQr = async (rawData) => {
+  const handleDetectedQr = async (rawData, { isManual = false } = {}) => {
     if (isProcessing) return;
     setIsProcessing(true);
 
@@ -224,32 +224,34 @@ export const WebcamScannerModal = ({ isOpen, onClose, onVisitorAdmitted }) => {
     const badgeSerial = parseBadgePayload(rawData);
 
     try {
-      // Triple-fallback lookup:
-      // 1. Direct pass endpoint by badgeNumber
+      // 1. Verify QR signature & resolve visit strictly on the backend
       let visit = null;
       try {
-        const passRes = await visitService.getPass(badgeSerial);
-        if (passRes.data?.data) {
-          visit = passRes.data.data;
+        const verifyRes = await visitService.verifyQr(rawData);
+        if (verifyRes.data?.data) {
+          visit = verifyRes.data.data;
         }
-      } catch {
-        // Fallback to query
+      } catch (verifyErr) {
+        if (verifyErr.response?.status === 403) {
+          if (soundEnabled) playAccessDenied();
+          setScanResult({
+            type: 'error',
+            message: verifyErr.response?.data?.message || 'SECURITY ALERT: Invalid or tampered QR credential.',
+            visit: null
+          });
+          setTimeout(() => resumeScanning(), 3500);
+          return;
+        }
       }
 
-      // 2. Query visits by badgeNumber
-      if (!visit) {
+      // 2. Fallback to manual guard lookup only for manual text entry (never for tampered JSON QR)
+      if (!visit && isManual) {
         try {
-          const res = await visitService.getVisits({ badgeNumber: badgeSerial, limit: 1 });
+          const res = await visitService.getVisits({ search: badgeSerial, limit: 1 });
           visit = res.data?.data?.[0];
         } catch {
-          // Fallback to search
+          // ignore
         }
-      }
-
-      // 3. Query visits by general search
-      if (!visit) {
-        const res = await visitService.getVisits({ search: badgeSerial, limit: 1 });
-        visit = res.data?.data?.[0];
       }
 
       if (!visit) {
@@ -260,6 +262,17 @@ export const WebcamScannerModal = ({ isOpen, onClose, onVisitorAdmitted }) => {
           visit: null
         });
         setTimeout(() => resumeScanning(), 3000);
+        return;
+      }
+
+      if (visit.status === 'rejected' || visit.status === 'cancelled') {
+        if (soundEnabled) playAccessDenied();
+        setScanResult({
+          type: 'error',
+          message: `ACCESS DENIED: Pass status is '${visit.status.toUpperCase()}'.`,
+          visit
+        });
+        setTimeout(() => resumeScanning(), 3500);
         return;
       }
 
@@ -314,7 +327,7 @@ export const WebcamScannerModal = ({ isOpen, onClose, onVisitorAdmitted }) => {
   const handleManualSubmit = (e) => {
     e.preventDefault();
     if (!manualCode.trim()) return;
-    handleDetectedQr(manualCode.trim());
+    handleDetectedQr(manualCode.trim(), { isManual: true });
     setManualCode('');
   };
 

@@ -24,8 +24,13 @@ export const SentinelCommandBar = () => {
   const { isLockdown, initiateLockdown, disengageLockdown, isMuted, toggleMute } = useLockdown();
   const inputRef = useRef(null);
 
-  // Global Key Listener for Ctrl+K, Cmd+K, Escape
+  // Global Key Listener for Ctrl+K, Cmd+K, Escape (only when authenticated)
   useEffect(() => {
+    if (!user) {
+      setIsOpen(false);
+      return;
+    }
+
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
         e.preventDefault();
@@ -45,7 +50,7 @@ export const SentinelCommandBar = () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('open-sentinel-command-bar', handleCustomOpen);
     };
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   // Load contextual data when palette opens
   useEffect(() => {
@@ -347,7 +352,7 @@ export const SentinelCommandBar = () => {
     }
   };
 
-  if (!isOpen) return null;
+  if (!user || !isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-150">

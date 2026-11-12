@@ -1,6 +1,7 @@
 import { Parser } from 'json2csv';
 import { Op } from 'sequelize';
 import { Visit, Visitor, User, Department } from '../models/index.js';
+import { sanitizeCsvCell } from '../config/security.js';
 
 export const getReportSummary = async (req, res, next) => {
   try {
@@ -59,14 +60,14 @@ export const exportCsv = async (req, res, next) => {
     });
 
     const flattened = visits.map(v => ({
-      'Badge Number': v.badgeNumber || 'N/A',
-      'Visitor Name': v.visitor?.fullName || 'N/A',
-      'Phone': v.visitor?.phone || 'N/A',
-      'Company': v.visitor?.company || 'N/A',
-      'Host Employee': v.host?.fullName || 'N/A',
-      'Department': v.department?.name || 'N/A',
-      'Purpose': v.purpose || 'N/A',
-      'Status': v.status,
+      'Badge Number': sanitizeCsvCell(v.badgeNumber || 'N/A'),
+      'Visitor Name': sanitizeCsvCell(v.visitor?.fullName || 'N/A'),
+      'Phone': sanitizeCsvCell(v.visitor?.phone || 'N/A'),
+      'Company': sanitizeCsvCell(v.visitor?.company || 'N/A'),
+      'Host Employee': sanitizeCsvCell(v.host?.fullName || 'N/A'),
+      'Department': sanitizeCsvCell(v.department?.name || 'N/A'),
+      'Purpose': sanitizeCsvCell(v.purpose || 'N/A'),
+      'Status': sanitizeCsvCell(v.status),
       'Check-In Time': v.checkInTime ? new Date(v.checkInTime).toLocaleString() : 'N/A',
       'Check-Out Time': v.checkOutTime ? new Date(v.checkOutTime).toLocaleString() : 'N/A',
       'Date Registered': new Date(v.createdAt).toLocaleDateString()
@@ -75,11 +76,10 @@ export const exportCsv = async (req, res, next) => {
     const json2csvParser = new Parser();
     const csv = json2csvParser.parse(flattened);
 
-    res.header('Content-Type', 'text/csv');
+    res.header('Content-Type', 'text/csv; charset=utf-8');
     res.attachment(`vms_visitor_report_${new Date().toISOString().slice(0, 10)}.csv`);
     return res.send(csv);
   } catch (error) {
     next(error);
   }
 };
-

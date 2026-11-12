@@ -38,6 +38,12 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   return children;
 };
 
+const AuthenticatedShellTools = () => {
+  const { user } = useAuth();
+  if (!user) return null;
+  return <SentinelCommandBar />;
+};
+
 export function App() {
   return (
     <AuthProvider>
@@ -46,8 +52,8 @@ export function App() {
           {/* Global Emergency Lockdown Banner */}
           <LockdownBanner />
 
-          {/* AI Security Copilot Command Palette (Ctrl+K) */}
-          <SentinelCommandBar />
+          {/* AI Security Copilot Command Palette (Ctrl+K, authenticated staff only) */}
+          <AuthenticatedShellTools />
 
           <Routes>
             {/* Public Modern Landing Page */}
@@ -60,8 +66,15 @@ export function App() {
             {/* Authentication Gateway */}
             <Route path="/login" element={<LoginPage />} />
 
-            {/* Supabase Integration Verification */}
-            <Route path="/supabase-test" element={<SupabaseTestPage />} />
+            {/* Supabase Integration Verification (Super Admin only) */}
+            <Route
+              path="/supabase-test"
+              element={
+                <ProtectedRoute allowedRoles={['super_admin']}>
+                  <SupabaseTestPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Operations Dashboard */}
             <Route

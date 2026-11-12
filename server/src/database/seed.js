@@ -1,11 +1,24 @@
-import { sequelize, User, Department, Visitor, Visit, Notification } from '../models/index.js';
-import QRCode from 'qrcode';
+import { sequelize, User, Department } from '../models/index.js';
 import { logger } from '../utils/logger.js';
 
-export const seedDatabase = async () => {
+export const seedDatabase = async ({ force = false } = {}) => {
   try {
+    const initialPassword = process.env.SEED_DEFAULT_PASSWORD || (
+      process.env.NODE_ENV === 'production' ? null : 'Password123!'
+    );
+
+    if (!initialPassword) {
+      throw new Error('SEED_DEFAULT_PASSWORD must be set when seeding in production.');
+    }
+
     logger.info('Syncing database schema...');
-    await sequelize.sync({ force: true });
+    await sequelize.sync({ force });
+
+    const existingUsers = await User.count();
+    if (existingUsers > 0 && !force) {
+      logger.info('Users already exist; skipping seed.');
+      return;
+    }
 
     logger.info('Creating departments...');
     const depts = await Department.bulkCreate([
@@ -16,19 +29,19 @@ export const seedDatabase = async () => {
     ]);
 
     logger.info('Creating staff users...');
-    const adminUser = await User.create({
+    await User.create({
       fullName: 'Sarah Connor (Director)',
       email: 'admin@vms.local',
-      password: 'Password123!',
+      password: initialPassword,
       role: 'super_admin',
       phone: '+1-555-0100',
       isActive: true
     });
 
-    const guardUser = await User.create({
+    await User.create({
       fullName: 'Marcus Vance (Chief Security Officer)',
       email: 'guard@vms.local',
-      password: 'Password123!',
+      password: initialPassword,
       role: 'guard',
       phone: '+1-555-0199',
       isActive: true
@@ -37,7 +50,7 @@ export const seedDatabase = async () => {
     const hostEng = await User.create({
       fullName: 'Dr. Alan Grant (Principal Architect)',
       email: 'host.eng@vms.local',
-      password: 'Password123!',
+      password: initialPassword,
       role: 'admin',
       phone: '+1-555-0102',
       departmentId: depts[0].id,
@@ -47,7 +60,7 @@ export const seedDatabase = async () => {
     const hostHr = await User.create({
       fullName: 'Elena Rostova (Head of Talent)',
       email: 'host.hr@vms.local',
-      password: 'Password123!',
+      password: initialPassword,
       role: 'admin',
       phone: '+1-555-0103',
       departmentId: depts[1].id,
@@ -57,7 +70,7 @@ export const seedDatabase = async () => {
     const hostSales = await User.create({
       fullName: 'David Sterling (VP Partnerships)',
       email: 'host.sales@vms.local',
-      password: 'Password123!',
+      password: initialPassword,
       role: 'admin',
       phone: '+1-555-0104',
       departmentId: depts[2].id,
@@ -76,9 +89,10 @@ export const seedDatabase = async () => {
   }
 };
 
-// Auto-run if executed directly
+// Auto-run if executed directly via CLI (pass --force explicitly to reset tables)
 if (process.argv[1]?.endsWith('seed.js')) {
-  seedDatabase().then(() => {
+  const forceReset = process.argv.includes('--force');
+  seedDatabase({ force: forceReset }).then(() => {
     logger.info('Seed script finished.');
     process.exit(0);
   }).catch((err) => {
@@ -86,4 +100,3 @@ if (process.argv[1]?.endsWith('seed.js')) {
     process.exit(1);
   });
 }
-

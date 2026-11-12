@@ -5,26 +5,33 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('vms_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      // Clear any legacy tokens previously stored in persistent localStorage
+      localStorage.removeItem('vms_access_token');
+      localStorage.removeItem('vms_user');
+      const saved = sessionStorage.getItem('vms_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('vms_access_token');
+      const token = sessionStorage.getItem('vms_access_token');
       if (token) {
         try {
           const { data } = await authService.getMe();
           if (data?.data) {
             setUser(data.data);
-            localStorage.setItem('vms_user', JSON.stringify(data.data));
+            sessionStorage.setItem('vms_user', JSON.stringify(data.data));
           }
         } catch (err) {
           console.error('Session verify failed:', err);
           setUser(null);
-          localStorage.removeItem('vms_user');
-          localStorage.removeItem('vms_access_token');
+          sessionStorage.removeItem('vms_user');
+          sessionStorage.removeItem('vms_access_token');
         }
       }
       setLoading(false);
@@ -37,8 +44,8 @@ export const AuthProvider = ({ children }) => {
     const { data } = await authService.login({ email, password });
     if (data?.data) {
       setUser(data.data.user);
-      localStorage.setItem('vms_access_token', data.data.accessToken);
-      localStorage.setItem('vms_user', JSON.stringify(data.data.user));
+      sessionStorage.setItem('vms_access_token', data.data.accessToken);
+      sessionStorage.setItem('vms_user', JSON.stringify(data.data.user));
       return data.data.user;
     }
   };
@@ -50,6 +57,8 @@ export const AuthProvider = ({ children }) => {
       // ignore
     } finally {
       setUser(null);
+      sessionStorage.removeItem('vms_user');
+      sessionStorage.removeItem('vms_access_token');
       localStorage.removeItem('vms_user');
       localStorage.removeItem('vms_access_token');
       window.location.href = '/login';
@@ -75,4 +84,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
